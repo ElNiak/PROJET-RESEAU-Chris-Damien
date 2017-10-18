@@ -4,7 +4,7 @@
 #include <stdio.h>  /* FILE */
 
 
-struct record{
+structs record{
 
 	unsigned int Type:2;
 	unsigned int TR:1;
@@ -28,7 +28,7 @@ struct record{
 struct record *record_init();
 
 /**
-* LibÃ¨re les ressources consommÃ©es par un enregistrement
+* Libere les ressources consommees par un enregistrement
 * @pre: r!= NULL
 */
 void record_free(struct record *r);
