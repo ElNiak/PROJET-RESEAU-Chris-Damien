@@ -1,12 +1,12 @@
 #include <string.h>
 #include <netdb.h>
-
 #include "real_address.h"
-
+#include <stdlib.h>
+#include <stdio.h>
 const char * real_address(const char *address, struct sockaddr_in6 *rval)
 {
 
-struct addrinfo hints, res, *p;
+struct addrinfo hints, *res;
 int status;
 
 memset(&hints,0,sizeof(hints));
@@ -18,13 +18,10 @@ if((status = getaddrinfo(address,NULL,&hints,&res)) != 0)
     fprintf(stderr,"getaddrinfo: %s:\n",gai_strerror(status));
     return "getaddrinfo error";
 }
-   // p = res;
-   // while(p != NULL)
-   // {
-        rval = (struct sockaddr_in6 *)p->ai_addr;
-        addr = &(ipv6->sin6_addr);
-       // p = p->ai_next;
-   // }
+    //rval = (struct sockaddr_in6 *)res->ai_addr;
+    struct sockaddr_in6 * addr = (struct sockaddr_in6 *) res->ai_addr;
+    memcpy(rval, addr, res->ai_addrlen); // copy the resulting IPv6 address to rval
+
     freeaddrinfo(res);
     return NULL;
 }
