@@ -1,5 +1,7 @@
 #include <netinet/in.h>
 #include <stdlib.h>
+#include <sys/types.h>
+#include <sys/socket.h>
 #include "wait_for_client.h"
 /* Block the caller until a message is received on sfd,
  * and connect the socket to the source addresse of the received message
@@ -11,9 +13,9 @@
  int wait_for_client(int sfd)
 {
     char *buffer[1024];
-    struct sockaddr_in6 * src = malloc(sizeof(truct sockaddr_in6));
+    struct sockaddr_in6 * src = malloc(sizeof(struct sockaddr_in6));
     socklen_t len = sizeof(* src);
-    ssize_t recv = rcvfrom(sfd,buffer,1024,MSG_PEEK,(struct sockaddr *)src,&len);
+    ssize_t recv = recvfrom(sfd,buffer,1024,MSG_PEEK,(struct sockaddr *)src,&len);
     if(recv == -1)
     {
       return -1;
