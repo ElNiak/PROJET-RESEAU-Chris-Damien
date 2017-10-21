@@ -23,7 +23,7 @@ void read_write_loop(int sfd)
   int b;
   while(loop)
   {
-    pfds[0].fd = STDIN_FILENO;
+    pfds[0].fd = 0;
     pfds[0].events = POLLIN;
 
     pfds[1].fd = sfd;
