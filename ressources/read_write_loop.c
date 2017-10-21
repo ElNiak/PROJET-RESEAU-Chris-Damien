@@ -1,11 +1,7 @@
 #include <fcntl.h>
-
 #include <stdio.h>
-
 #include <sys/poll.h>
-
 #include <sys/time.h>
-
 #include <unistd.h>
 #include "read_write_loop.h"
 /* Loop reading a socket and printing to stdout,
@@ -19,7 +15,7 @@ void read_write_loop(int sfd)
   struct pollfd pfds[2];
   char buffer[1024];
   int loop = 1;
-  int a;
+  ssize_t a;
   int b;
   while(loop)
   {
@@ -42,7 +38,7 @@ void read_write_loop(int sfd)
           {
               loop = 0;
           }
-          b = write(1,buffer,a);
+          b = write(sfd,buffer,a);
           if(b == -1)
           {
               fprintf(stderr, "error write()");

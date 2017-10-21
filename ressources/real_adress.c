@@ -1,28 +1,27 @@
 #include <string.h>
 #include <netdb.h>
-
 #include "real_address.h"
-const char * real_address(const char *address, struct sockaddr_in6 *rval){
-struct addrinfo hints;
-struct addrinfo *get;
-int succes;
+#include <stdlib.h>
+#include <stdio.h>
+const char * real_address(const char *address, struct sockaddr_in6 *rval)
+{
 
-memset(&hints,0, sizeof (struct addrinfo));
-hints.ai_family=AF_INET6;
-hints.ai_socktype=SOCK_DGRAM;
-hints.ai_protocol=0;
-hints.ai_flags=AI_PASSIVE;
-hints.ai_canonname=NULL;
-hints.ai_addr=NULL;
-hints.ai_next=NULL;
+struct addrinfo hints, *res;
+int status;
 
-succes=getaddrinfo(address,NULL,&hints,&get);
+memset(&hints,0,sizeof(hints));
+hints.ai_family = AF_INET6;
+hints.ai_socktype = SOCK_STREAM;
 
-if(!succes) return gai_strerror(succes);
-
-struct sockaddr_in6 *adrrIPv6=(struct sockaddr_in6 *) get->ai_addr;
-memcpy(rval,adrrIPv6,get->ai_addrlen);
-freeaddrinfo(get);
-return NULL;  
+if((status = getaddrinfo(address,NULL,&hints,&res)) != 0)
+{
+    fprintf(stderr,"getaddrinfo: %s:\n",gai_strerror(status));
+    return "getaddrinfo error";
 }
+ 
+    struct sockaddr_in6 * addr = (struct sockaddr_in6 *) res->ai_addr;
+    memcpy(rval, addr, res->ai_addrlen); // copy the resulting IPv6 address to rval
 
+    freeaddrinfo(res);
+    return NULL;
+}
