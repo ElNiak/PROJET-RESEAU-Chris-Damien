@@ -3,10 +3,10 @@
 
 #include "real_address.h"
 
-const char * real_address(const char *address, struct sockaddr_in6 *rval)7
+const char * real_address(const char *address, struct sockaddr_in6 *rval)
 {
 
-struct addrinfo hints, res *, *p;
+struct addrinfo hints, res, *p;
 int status;
 
 memset(&hints,0,sizeof(hints));
