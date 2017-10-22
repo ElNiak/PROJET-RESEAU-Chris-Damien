@@ -3,6 +3,11 @@
 #include "wait_for_client.h"
 #include "read_write_loop.h"
 #include <stdlib.h>
+#include <netinet/in.h>
+
+char *file=NULL;
+char *hostname=NULL;
+int port=-1;
 
 
 int acknowledgement(uint8_t window, int sockfd, uint8_t seqnum)
@@ -179,13 +184,13 @@ int main(int argc, char *argv[])
   }
 
   int fd;
-  if(filename == NULL) //filename a recuperer dans les argc
+  if(file == NULL) //filename a recuperer dans les argc
   {
     fd = 1;
   }
   else
   {
-    fd = open(filename,O_WRONLY|O_CREAT);
+    fd = open(file,O_WRONLY|O_CREAT);
   }
 
   int err = receiver_SR(sfd,fd);

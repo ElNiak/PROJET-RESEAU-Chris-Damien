@@ -34,8 +34,7 @@ typedef enum {
 } pkt_status_code;
 
 /*
-*	crc1,crc2 et length sont encodé dans le pkt en nbo, il faut donc caster APRES
-* avoir fait un get, et caster AVANT de faire le set, selon la forme dont on a besoin
+*	crc1,crc2 sont encodé dans le pkt en nbo, length est encodé en host.
 */
 struct __attribute__((__packed__)) pkt {
     ptypes_t type : 2; // 2bits
