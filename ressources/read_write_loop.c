@@ -13,7 +13,7 @@ void read_write_loop(int sfd)
 {
   int nbFd;
   struct pollfd pfds[2];
-  char buffer[1024];
+  char buffer[524];
   int loop = 1;
   ssize_t a;
   int b;
@@ -33,7 +33,7 @@ void read_write_loop(int sfd)
     if (pfds[0].revents & POLLIN)
     {
 
-          a = read(0,buffer,1024);
+          a = read(0,buffer,524);
           if (a == EOF)
           {
               loop = 0;
@@ -46,7 +46,7 @@ void read_write_loop(int sfd)
        }
        if (pfds[1].revents & POLLIN) {
 
-          a = read(sfd, buffer, 1024);
+          a = read(sfd, buffer, 524);
           if (a == EOF)
           {
               loop = 0;
