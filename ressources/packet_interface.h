@@ -43,7 +43,6 @@ struct __attribute__((__packed__)) pkt {
     uint32_t crc1; //32bits
     char *payload; // max 4096bits
     uint32_t crc2; // 32bits
-    struct timer_s *timer;
 };
 /* Alloue et initialise une struct pkt
  * @return: NULL en cas d'erreur */
