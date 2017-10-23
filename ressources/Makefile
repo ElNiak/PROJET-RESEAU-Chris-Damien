@@ -1,29 +1,43 @@
-# See gcc/clang manual to understand all flags
-CFLAGS += -std=c99 # Define which version of the C standard to use
-CFLAGS += -Wall # Enable the 'all' set of warnings
-CFLAGS += -Werror # Treat all warnings as error
-CFLAGS += -Wshadow # Warn when shadowing variables
-CFLAGS += -Wextra # Enable additional warnings
-CFLAGS += -O2 -D_FORTIFY_SOURCE=2 # Add canary code, i.e. detect buffer overflows
-CFLAGS += -fstack-protector-all # Add canary code to detect stack smashing
-CFLAGS += -D_POSIX_C_SOURCE=201112L -D_XOPEN_SOURCE # feature_test_macros for getpot and getaddrinfo
+GCC = gcc
+CFLAGS = -Wall -W -Werror -std=gnu99 -g -c
+OBJ = packet_interface.o real_address.o create_socket.o packet_implement.o wait_for_client.o
 
-# We have no libraries to link against except libc, but we want to keep
-# the symbols for debugging
-LDFLAGS= -rdynamic
+all : receiver sender
 
-# Default target
-all: clean chat
+tests : receiver sender test 
 
-# If we run `make debug` instead, keep the debug symbols for gdb
-# and define the DEBUG macro.
-debug: CFLAGS += -g -DDEBUG -Wno-unused-parameter -fno-omit-frame-pointer
-debug: clean chat
+receiver : receiver.o
+	$(GCC) -o receiver receiver.o $(OBJ) -lz
 
-# We use an implicit rule to build an executable named 'chat'
-chat: chat.o read_write_loop.o create_socket.o real_address.o wait_for_client.o
+sender : sender.o
+	$(GCC) -o sender sender.o $(OBJ) -lz
 
-.PHONY: clean
+receiver.o : $(OBJ) receiver.c receiver.h
+  $(GCC) -c receiver.c $(CFLAGS)
 
-clean:
-	@rm -f chat chat.o read_write_loop.o create_socket.o real_address.o wait_for_client.o
+sender.o : $(OBJ) sender.c sender.h
+  $(GCC) -c sender.c $(CFLAGS)
+
+packet_interface.o : packet_implement.c packet_interface.h
+  $(GCC) -c packet_interface.c $(CFLAGS)
+
+wait_for_client.o : wait_for_client.c wait_for_client.h
+  $(GCC) -c wait_for_client.c $(CFLAGS)
+
+real_address.o : real_address.c real_address.h
+  $(GCC) -c real_address.c $(CFLAGS)
+
+create_socket.o : create_socket.c create_socket.h
+  $(GCC) -c create_socket.c $(CFLAGS)
+
+test : test.o sender.o receiver.o $(OBJ)
+  $(GCC) -o test  test.o receiver.o sender.o $(OBJ) -lz -lcunit
+
+test.o : sender.o receiver.o $(OBJ)
+  $(GCC) -c test.c $(CFLAGS)
+
+clear :
+  rm -rf *.o
+
+mrproper :
+  rm -rf $(EXEC)
