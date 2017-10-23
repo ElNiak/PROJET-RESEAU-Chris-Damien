@@ -13,31 +13,31 @@ sender : sender.o
 	$(GCC) -o sender sender.o $(OBJ) -lz
 
 receiver.o : $(OBJ) receiver.c receiver.h
-  $(GCC) -c src/receiver.c $(CFLAGS)
+	$(GCC) -c src/receiver.c $(CFLAGS)
 
 sender.o : $(OBJ) src/sender.c src/sender.h
-  $(GCC) -c src/sender.c $(CFLAGS)
+	$(GCC) -c src/sender.c $(CFLAGS)
 
-packet_interface.o : src/packet_implement.c src/packet_interface.h
-  $(GCC) -c src/packet_interface.c $(CFLAGS)
+packet_interface.o : src/packet_implement.c src/packet_interface.h 
+	$(GCC) -c src/packet_implement.c $(CFLAGS) -lz
 
 wait_for_client.o : src/wait_for_client.c src/wait_for_client.h
-  $(GCC) -c src/wait_for_client.c $(CFLAGS)
+	$(GCC) -c src/wait_for_client.c $(CFLAGS)
 
 real_address.o : src/real_address.c src/real_address.h
-  $(GCC) -c src/real_address.c $(CFLAGS)
+	$(GCC) -c src/real_address.c $(CFLAGS)
 
 create_socket.o : src/create_socket.c src/create_socket.h
-  $(GCC) -c src/create_socket.c $(CFLAGS)
+	$(GCC) -c src/create_socket.c $(CFLAGS)
 
 test : test.o sender.o receiver.o $(OBJ)
-  $(GCC) -o test  test.o receiver.o sender.o $(OBJ) -lz -lcunit
+	$(GCC) -o test  test.o receiver.o sender.o $(OBJ) -lz -lcunit
 
 test.o : sender.o receiver.o $(OBJ)
-  $(GCC) -c tests/test.c $(CFLAGS)
+	$(GCC) -c tests/test.c $(CFLAGS)
 
 clear :
-  rm -rf *.o
+	rm -rf *.o
 
 mrproper :
-  rm -rf $(EXEC)
+	rm -rf $(EXEC)
