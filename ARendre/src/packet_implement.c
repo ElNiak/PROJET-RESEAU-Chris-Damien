@@ -191,7 +191,7 @@ pkt_status_code pkt_decode(const char *data, const size_t len, pkt_t *pkt)
 		tr=tr>>2;
 		if(tr==0&&pkt_get_type(pkt)==PTYPE_DATA){
 			err=pkt_set_tr(pkt,tr);
-		}else if((tr==1)&&(pkt_get_type==PTYPE_DATA)){
+		}else if((tr==1)&&(pkt_get_type(pkt)==PTYPE_DATA)){
 			err=pkt_set_type(pkt,PTYPE_NACK);
 		}
 		if(err!=PKT_OK){
