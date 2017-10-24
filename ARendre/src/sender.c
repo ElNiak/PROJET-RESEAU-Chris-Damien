@@ -1,9 +1,12 @@
 #include <stdlib.h>
 #include <stdio.h>
-
-#include "sender.h"
 #include "real_address.h"
 #include "create_socket.h"
+#include "wait_for_client.h"
+#include "read_write_loop.h"
+#include "sender.h"
+#include "various.h"
+#include <netinet/in.h>
 
 char *file=NULL;
 char *hostname=NULL;

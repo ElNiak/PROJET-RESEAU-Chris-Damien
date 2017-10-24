@@ -2,8 +2,12 @@
 #include "create_socket.h"
 #include "wait_for_client.h"
 #include "read_write_loop.h"
+#include "receiver.h"
+#include "various.h"
 #include <stdlib.h>
 #include <netinet/in.h>
+#include "packet_interface.h"
+#include <getopt.h>
 
 char *file=NULL;
 char *hostname=NULL;

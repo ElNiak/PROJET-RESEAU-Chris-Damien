@@ -12,7 +12,7 @@ receiver : receiver.o
 sender : sender.o
 	$(GCC) -o sender sender.o $(OBJ)
 
-receiver.o : $(OBJ) receiver.c receiver.h
+receiver.o : $(OBJ) src/receiver.c src/receiver.h
 	$(GCC) -c src/receiver.c $(CFLAGS)
 
 sender.o : $(OBJ) src/sender.c src/sender.h
