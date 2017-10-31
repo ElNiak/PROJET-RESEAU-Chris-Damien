@@ -3,6 +3,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include "wait_for_client.h"
+#include <stdio.h>
 /* Block the caller until a message is received on sfd,
  * and connect the socket to the source addresse of the received message
  * @sfd: a file descriptor to a bound socket but not yet connected
@@ -18,12 +19,14 @@
     ssize_t recv = recvfrom(sfd,buffer,1024,MSG_PEEK,(struct sockaddr *)src,&len);
     if(recv == -1)
     {
+      fprintf(stderr, "wait_for_client => ERROR : recvfrom == -1\n");
       return -1;
     }
 
     recv = connect(sfd,(struct sockaddr *)src,len);
     if(recv == -1)
     {
+      fprintf(stderr, "wait_for_client => ERROR : connect == -1\n");
       return -1;
     }
     return 0;

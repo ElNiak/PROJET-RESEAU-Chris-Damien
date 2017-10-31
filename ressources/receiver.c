@@ -1,8 +1,12 @@
-#include "real_address.h"
+#include "real_adrress.h"
 #include "create_socket.h"
 #include "wait_for_client.h"
+#include "packet_interface.h"
 #include "read_write_loop.h"
+#include <sys/poll.h>
+#include <sys/time.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <netinet/in.h>
 
 char *file=NULL;
@@ -17,7 +21,7 @@ int acknowledgement(uint8_t window, int sockfd, uint8_t seqnum)
   pkt_set_length(ackgmt_pkt,0);
   pkt_set_type(ackgmt_pkt,PTYPE_ACK);
   pkt_set_window(ackgmt_pkt,window);
-  pkt_set_seqnum(ackgmt_pkt,seq_num);
+  pkt_set_seqnum(ackgmt_pkt,seqnum);
 
   char * ackgmt_mess = calloc(12,sizeof(char));
   size_t length = 12;
@@ -53,7 +57,7 @@ int receiver_SR(int sockfd, int fd)
 
   uint8_t seqnum = 0;
   ssize_t read;
-  char *buffer;
+  char buffer[524];
   struct pollfd pfds[2];
   int loop = 1;
   int nbFd;
