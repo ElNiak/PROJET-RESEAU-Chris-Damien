@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <stdio.h>
 #include "wait_for_client.h"
 /* Block the caller until a message is received on sfd,
  * and connect the socket to the source addresse of the received message

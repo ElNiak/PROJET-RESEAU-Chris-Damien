@@ -142,6 +142,7 @@ int receiver_SR(int sockfd, int fd)
           if(pkt_get_seqnum(new) == seqnum)
           {
             acknowledgement(sockfd,0,(seqnum+1)%256);
+            sleep(2);
             loop = 0;
           }
           else
