@@ -1,7 +1,6 @@
 #include <netinet/in.h> /* * sockaddr_in6 */
 #include <sys/types.h> /* sockaddr_in6 */
 #include <stdlib.h>
-
 #include <stdio.h>
 /* Creates a socket and initialize it
  * @source_addr: if !NULL, the source address that should be bound to this socket

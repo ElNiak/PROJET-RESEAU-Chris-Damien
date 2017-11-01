@@ -18,12 +18,14 @@
     ssize_t recv = recvfrom(sfd,buffer,1024,MSG_PEEK,(struct sockaddr *)src,&len);
     if(recv == -1)
     {
+      fprintf(stderr, "wait_for_client => ERROR : recvfrom == -1\n");
       return -1;
     }
 
     recv = connect(sfd,(struct sockaddr *)src,len);
     if(recv == -1)
     {
+      fprintf(stderr, "wait_for_client => ERROR : connect == -1\n");
       return -1;
     }
     return 0;

@@ -28,8 +28,7 @@ void read_write_loop(int sfd)
     nbFd = poll(pfds,2,-1); //timeout = -1 => Pour illimite
     if(nbFd == -1)
     {
-      fprintf(stderr, "error poll()");
-    }
+      fprintf(stderr, "read_write_loop => ERROR : poll() == -1\n");    }
     if (pfds[0].revents & POLLIN)
     {
 
@@ -41,7 +40,7 @@ void read_write_loop(int sfd)
           b = write(sfd,buffer,a);
           if(b == -1)
           {
-              fprintf(stderr, "error write()");
+            fprintf(stderr, "read_write_loop => ERROR : write() == -1\n");
           }
        }
        if (pfds[1].revents & POLLIN) {
@@ -54,7 +53,7 @@ void read_write_loop(int sfd)
           b =  write(1, buffer, a);
           if(b == -1)
           {
-              fprintf(stderr, "error write()");
+            fprintf(stderr, "read_write_loop => ERROR : wirte() == -1\n");
           }
        }
   }
