@@ -3,18 +3,66 @@
 #include "wait_for_client.h"
 #include "read_write_loop.h"
 #include "receiver.h"
-#include "various.h"
+#include "packet_interface.h"
 #include <stdlib.h>
 #include <netinet/in.h>
-#include "packet_interface.h"
 #include <getopt.h>
+#include <poll.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <zlib.h>
 
 char *file=NULL;
 char *hostname=NULL;
-int port=-1;
+char *port=NULL;
 
 
-int acknowledgement(uint8_t window, int sockfd, uint8_t seqnum)
+
+void get_args(int argc, char **argv){
+
+  int opt;
+  if (argc < 2) {
+      fprintf(stderr, "`%s' arguments missing\n", argv[0]);
+      fprintf(stderr, "Try `%s --help' for more information.\n", argv[0]);
+      exit(1);
+  }
+  else {
+      /* specify which parameters we expect */
+      static struct option options[] =
+      {
+          {"filename", required_argument, 0, 'f'},
+          {"help", no_argument, NULL, 'h'},
+          {NULL, 0, NULL, 0}
+      };
+
+      while ((opt = getopt_long(argc, argv, "f:h:", options, NULL)) != -1) {
+          switch (opt) {
+              case 'f':
+                  file = optarg;
+                  break;
+              case 'h':
+                  printf("\n");
+                  printf("Usage: %s hostname port\n", argv[0]);
+                  printf("Usage: %s [-f X] hostname port\n", argv[0]);
+                  printf("Usage: %s [--filename X] hostname port\n", argv[0]);
+                  printf("\n");
+                  exit(1);
+              default:
+                  fprintf(stderr, "Try `%s --help' for more information.\n", argv[0]);
+                  exit(1);
+          }
+      }
+
+      hostname = argv[argc-2];
+      port = argv[argc-1];
+  }
+
+}
+
+int acknowledgement(uint8_t window, int sockfd, uint8_t seq_num)
 {
 
   pkt_t *ackgmt_pkt = pkt_new();//On cree puis initialise le packet
@@ -82,29 +130,30 @@ int receiver_SR(int sockfd, int fd)
     if ((pfds[0].revents & POLLIN) && (pfds[1].revents & POLLIN))
     { // check for events on sockfd read :
       buffer = calloc(524,sizeof(char));
-      read = recv(sdf,buffer,MAX_PAYLOAD_SIZE+12,0); //nb de byte lu
+      read = recv(sockfd,buffer,MAX_PAYLOAD_SIZE+12,0); //nb de byte lu
+      // tu avais mi sfd mais sfd ne corrspond a rien, je suppose que tu voulais mettre sockfd.
       if(read > 0)
       {
-        pkt_t new = pkt_new();
+        pkt_t *new = pkt_new();
         pkt_status_code decode = pkt_decode(buffer, read, new);
 
         if(read == 12) //les 12 bits en plus de payload
         {
           if(pkt_get_seqnum(new) == seqnum)
           {
-            acknowledgement(sdf,0,(seqnum+1)%256);
+            acknowledgement(sockfd,0,(seqnum+1)%256);
             loop = 0;
           }
           else
           {
-            acknowledgement(sfd,0,seqnum);
+            acknowledgement(sockfd,0,seqnum);
           }
         }
         else if(decode != PKT_OK) //Erreur dans le packet
         {
           if(decode == E_CRC)
           {
-            acknowledgement(sfd,window,seqnum);
+            acknowledgement(sockfd,window,seqnum);
           }
         }
         else
@@ -132,11 +181,12 @@ int receiver_SR(int sockfd, int fd)
                 }
               }
             }
-            acknowledgement(sfd,window,seqnum);
+            acknowledgement(sockfd,window,seqnum);
           }
-          else if(((pkt_get_seqnum(new) > seqnum) && ((pkt_get_seqnum(new) - seqnum) <= window)) || ((pkt_get_seqnum(new) < seqnum) && ((pkt_get_seqnum(new) + 255 - seqnum) <= window))
+          else if(((pkt_get_seqnum(new) > seqnum) && ((pkt_get_seqnum(new) - seqnum) <= window)) ||
+          ((pkt_get_seqnum(new) < seqnum) && ((pkt_get_seqnum(new) + 255 - seqnum) <= window)))
           { // packet dans le desordre
-            int isIN = 0;
+            int isIn = 0;
             for(int i = 0; i < window && !isIn ; i++)
             {
               if(rcv_pkt[i] != NULL)
@@ -153,32 +203,34 @@ int receiver_SR(int sockfd, int fd)
               }
               rcv_pkt[pos] = new;
             }
-            acknowledgement(sdf,window,seq_num);
+            acknowledgement(sockfd,window,seqnum);
           }
           else
           {
-            acknowledgement(sdf, window,seq_num);
+            acknowledgement(sockfd, window,seqnum);
           }
         }
       }
     }
   }
   close(fd);
-  close(sfd);
+  close(sockfd);
   return 0;
 }
 
 
-int main(int argc, char *argv[])
+int main(int argc, char **argv)
 {
   get_args(argc,argv);
   struct sockaddr_in6 addr;
-	int err=real_address(hostname,&addr);
-	if(err){
+  const char *error=real_address(hostname,&addr);
+	if(error){
 		fprintf(stderr,"error while resolving hostname to a sockaddr_in6");
 	}
 
-  int sfd = create_socket(&addr,NULL);
+  int sfd = create_socket(&addr,0,NULL,0);// pour create socket, il faut deux adresses, et deux int port.
+  //je pense qu'il faut faire un wait for client ici pour avoir l'adresse lors du premier message
+
   if(sfd == -1) return -1;
 
   if(wait_for_client(sfd) < 0)

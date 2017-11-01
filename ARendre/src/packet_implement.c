@@ -1,9 +1,9 @@
 #include <stdio.h>
-#include <stdlib.h> //malloc
-#include <zlib.h> //bytef
-#include <string.h> // memcpy
-#include <netinet/in.h> //htons
-#include <time.h> //timeval
+#include <stdlib.h> 
+#include <zlib.h> 
+#include <string.h> 
+#include <netinet/in.h> 
+#include <time.h> 
 #include "packet_interface.h"
 
 
