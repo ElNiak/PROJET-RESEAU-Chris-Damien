@@ -5,7 +5,7 @@ hFILES= src/packet_interface.h src/real_address.h src/wait_for_client.h src/crea
 
 all : receiver sender tests clear
 
-tests : tests/test.o
+tests : $(OBJ) tests/test.o
 	$(CC) -o $@ $^ $(CFLAGS)  
 
 receiver :  $(OBJ)  src/receiver.o 
@@ -17,7 +17,7 @@ sender :  $(OBJ)  src/sender.o
 %.o: src/%.c $(HFILES)
 	$(GCC) -c $@ $< $(CFLAGS) 
 
-%.o: tests/%.c 
+%.o: tests/%.c $(HFILES)
 	$(GCC) -c $@ $< $(CFLAGS) 
 
 

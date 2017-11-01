@@ -2,13 +2,13 @@
 #include "CUnit/Basic.h"
 //#include "CUnit/Automated.h"
 //#include "CUnit/Console.h"
-#include "create_socket.h"
-#include "packet_interface.h"
-#include "real_address.h"
-#include "various.h"
-#include "wait_for_client.h"
-#include "sender.h"
-#include "receiver.h"
+#include "../src/create_socket.h"
+#include "../src/packet_interface.h"
+#include "../src/real_address.h"
+#include "../src/various.h"
+#include "../src/wait_for_client.h"
+#include "../src/sender.h"
+#include "../src/receiver.h"
 #include <stdio.h>  // for printf
 #include <stdlib.h>
 
@@ -121,3 +121,4 @@ void test_read_write_loop(void){
    CU_cleanup_registry();
    return CU_get_error();
  }
+
