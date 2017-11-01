@@ -2,9 +2,8 @@ GCC = gcc
 CFLAGS = -Wall -W -Werror -std=gnu99 -g 
 OBJ = src/real_address.o src/create_socket.o src/packet_implement.o src/wait_for_client.o
 hFILES= src/packet_interface.h src/real_address.h src/wait_for_client.h src/create_socket.h
-HOME=/home/raquet/Documents/Projet_reseaux/PROJET-RESEAU-Chris-Damien/ARendre
 
-all : receiver sender tests
+all : receiver sender tests clear
 
 tests : tests/test.o
 	$(CC) -o $@ $^ $(CFLAGS)  
@@ -23,7 +22,7 @@ sender :  $(OBJ)  src/sender.o
 
 
 clear :
-	rm -rf *.o
+	rm -rf src/*.o tests/*.o
 
 mrproper :
 	rm -rf $(EXEC)
