@@ -99,21 +99,21 @@ int sender_SR(int sockfd, int fd)
 	while(loop)
 	{
 		pfds[0].fd = sockfd;
-		pfds[0].events = POLLIN | POLLPRI | POLLOUT;
+		pfds[0].events =  POLLOUT;
 
 		pfds[1].fd = sockfd;
-		pfds[1].events = POLLIN | POLLPRI | POLLOUT;
-	  fprintf(stderr, "sender => sender_SR() : poll : ?\n");
+		pfds[1].events = POLLOUT;
+		fprintf(stderr, "sender => sender_SR() : poll : ?\n");
 		nbFd = poll(pfds,2,-1); //timeout = -1 => Pour illimite
 		if(nbFd == -1)
 		{
 			fprintf(stderr, "sender => error poll() - 1");
 			return -1;
 		}
-    fprintf(stderr, "sender => sender_SR() : poll : OK\n");
+		fprintf(stderr, "sender => sender_SR() : poll : OK\n");
 		if(pfds[0].revents & POLLOUT)
 		{
-		  fprintf(stderr, "sender => sender_SR() : recv : ?\n");
+			fprintf(stderr, "sender => sender_SR() : recv : ?\n");
 			nbAck = recv(sockfd,acknowledgement,12,0);
 			if(nbAck == -1)
 			{
@@ -122,14 +122,14 @@ int sender_SR(int sockfd, int fd)
 			}
 			fprintf(stderr, "sender => sender_SR() : recv : OK\n");
 			pkt_t * ack = pkt_new();
-		  fprintf(stderr, "sender => sender_SR() : pkt_decode 1 : ?\n");
+			fprintf(stderr, "sender => sender_SR() : pkt_decode 1 : ?\n");
 			pkt_status_code status = pkt_decode(acknowledgement,12,ack);
 			if(status != PKT_OK)
 			{
 				fprintf(stderr, "sender => error pkt_decode()");
 				return -1;
 			}
-      fprintf(stderr, "sender => sender_SR() : pkt_decode : OK\n");
+			fprintf(stderr, "sender => sender_SR() : pkt_decode : OK\n");
 			uint8_t res = pkt_get_window(ack);
 			if(res != max_wind && !isUpdate)
 			{
@@ -251,7 +251,7 @@ int sender_SR(int sockfd, int fd)
 			loop = 0;
 		}
 	}
-  fprintf(stderr, "sender => sender_SR() : loop : OK\n");
+	fprintf(stderr, "sender => sender_SR() : loop : OK\n");
 	int disconnected = 0;
 	while (!disconnected)
 	{
@@ -353,14 +353,14 @@ int sender_SR(int sockfd, int fd)
 int create_socketv2(struct sockaddr_in6 *addr, int port){
 
 	if(addr==NULL||port<1){
-	fprintf(stderr, "create_socket => ERROR : sockfd < 0 || addr ==NULL\n");
-	return -1;
+		fprintf(stderr, "create_socket => ERROR : sockfd < 0 || addr ==NULL\n");
+		return -1;
 	}
 	//creer le socket
- 	int sfd = socket(PF_INET6,SOCK_DGRAM,IPPROTO_UDP);
+	int sfd = socket(PF_INET6,SOCK_DGRAM,IPPROTO_UDP);
 	if(sfd == -1){
-    	fprintf(stderr, "create_socket : %s\n",strerror(errno));
-    	return -1;
+		fprintf(stderr, "create_socket : %s\n",strerror(errno));
+		return -1;
 	}
 	addr->sin6_family = AF_INET6;
 	//set le port
@@ -370,8 +370,8 @@ int create_socketv2(struct sockaddr_in6 *addr, int port){
 	int err_num = connect(sfd,(struct sockaddr*)addr,sizeof(struct sockaddr_in6));
 
 	if(err_num != 0){
-	fprintf(stderr, "create_socketv2 : %s\n",strerror(errno));
-	return -1;
+		fprintf(stderr, "create_socketv2 : %s\n",strerror(errno));
+		return -1;
 	}
 	//renvoie le sfd
 	return sfd;
@@ -380,19 +380,20 @@ int create_socketv2(struct sockaddr_in6 *addr, int port){
 
 char *get_ip_str(struct sockaddr_in6 *sa, char *s, size_t maxlen)
 {
-    inet_ntop(AF_INET6, &(((struct sockaddr_in6 *)sa)->sin6_addr),s, maxlen);
-    return s;
+	inet_ntop(AF_INET6, &(((struct sockaddr_in6 *)sa)->sin6_addr),s, maxlen);
+	return s;
 }
 
 int main(int argc, char **argv){
-  fprintf(stderr, "sender => main() : get_args : ?\n");
+	fprintf(stderr, "sender => main() : get_args : ?\n");
 	get_args(argc,argv);
-  fprintf(stderr, "sender => main() : get_args : OK\n");
+	fprintf(stderr, "sender => main() : get_args : OK\n");
 	struct sockaddr_in6 addr;
 	fprintf(stderr, "sender => main() : real_address : ?\n");
 	const char *err=real_address(hostname,&addr);
 	fprintf(stderr, "sender => main() : real_address : OK\n");
-	if(err){
+	if(err)
+	{
 		fprintf(stderr,"sender => could not resolve hostname %s, %s\n",hostname, err);
 		return -1;
 	}

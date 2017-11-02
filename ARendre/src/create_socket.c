@@ -12,7 +12,7 @@
  */
 int create_socket(struct sockaddr_in6 *source_addr,  int src_port,struct sockaddr_in6 *dest_addr,int dst_port){
     int sockfd;
-    sockfd = socket(AF_INET6,SOCK_DGRAM,IPPROTO_UDP);
+    sockfd = socket(PF_INET6,SOCK_DGRAM,IPPROTO_UDP);
     if(sockfd <0)
     {
       fprintf(stderr, " create_socket => ERROR : sockfd < 0\n");
@@ -21,6 +21,7 @@ int create_socket(struct sockaddr_in6 *source_addr,  int src_port,struct sockadd
 
     if(source_addr != NULL)
     {
+      source_addr->sin6_family = AF_INET6;
       if(src_port > 0)
       {
         source_addr->sin6_port  = htons(src_port);
@@ -33,6 +34,7 @@ int create_socket(struct sockaddr_in6 *source_addr,  int src_port,struct sockadd
     }
     if(dest_addr != NULL)
     {
+      dest_addr->sin6_family = AF_INET6;
       if(dst_port > 0)
       {
         dest_addr->sin6_port = htons(dst_port);

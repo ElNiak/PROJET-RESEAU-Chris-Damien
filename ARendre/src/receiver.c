@@ -118,10 +118,10 @@ int receiver_SR(int sockfd, int fd)
   while(loop)
   {
     pfds[0].fd = sockfd;
-    pfds[0].events = POLLIN | POLLPRI | POLLOUT;
+    pfds[0].events = POLLIN | POLLPRI;
 
     pfds[1].fd = sockfd;
-    pfds[1].events = POLLIN | POLLPRI |POLLOUT;
+    pfds[1].events = POLLIN | POLLPRI ;
 
     nbFd = poll(pfds,2,-1); //timeout = -1 => Pour illimite
     if(nbFd == -1)
