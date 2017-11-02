@@ -346,37 +346,8 @@ int sender_SR(int sockfd, int fd)
 	close(sockfd);
 	return 0;
 }
-/*
-* ici on créer le socket, et on le connecte. le socket est bind dans le receiver,
-*attendu que le receiver est lancé en premier.
-*/
-int create_socketv2(struct sockaddr_in6 *addr, int port){
 
-	if(addr==NULL||port<1){
-		fprintf(stderr, "create_socket => ERROR : sockfd < 0 || addr ==NULL\n");
-		return -1;
-	}
-	//creer le socket
-	int sfd = socket(PF_INET6,SOCK_DGRAM,IPPROTO_UDP);
-	if(sfd == -1){
-		fprintf(stderr, "create_socket : %s\n",strerror(errno));
-		return -1;
-	}
-	addr->sin6_family = AF_INET6;
-	//set le port
-	uint16_t port_network_endian = htons(port);
-	memcpy((void*)&addr->sin6_port,(const void *)&port_network_endian,sizeof(uint16_t));
-	//connect le socket
-	int err_num = connect(sfd,(struct sockaddr*)addr,sizeof(struct sockaddr_in6));
 
-	if(err_num != 0){
-		fprintf(stderr, "create_socketv2 : %s\n",strerror(errno));
-		return -1;
-	}
-	//renvoie le sfd
-	return sfd;
-
-}
 
 char *get_ip_str(struct sockaddr_in6 *sa, char *s, size_t maxlen)
 {
@@ -403,7 +374,6 @@ int main(int argc, char **argv){
 	get_ip_str(&addr,res,50);
 	fprintf(stderr, "== sender => ipv6  : %s\n",res);
 	fprintf(stderr, "sender => main() : create_socketv2 : ?\n");
-	//int sfd = create_socketv2(&addr,port_int);
 	int sfd = create_socket(NULL,-1,&addr,port_int);
 	fprintf(stderr, "sender => main() : create_socketv2 : OK\n");
 	if(sfd == -1){
