@@ -121,7 +121,7 @@ int receiver_SR(int sockfd, int fd)
     nbFd = poll(pfds,2,-1); //timeout = -1 => Pour illimite
     if(nbFd == -1)
     {
-      fprintf(stderr, "error poll()");
+      fprintf(stderr, "receiver => error poll()");
       return -1;
     }
 
