@@ -4,6 +4,7 @@
 #include "read_write_loop.h"
 #include "receiver.h"
 #include "packet_interface.h"
+#include <errno.h>
 #include <stdlib.h>
 #include <netinet/in.h>
 #include <getopt.h>
@@ -12,8 +13,11 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/time.h>
 #include <fcntl.h>
 #include <zlib.h>
+#include <stdio.h>
+#include <string.h>
 
 char *file=NULL;
 char *hostname=NULL;
@@ -218,8 +222,35 @@ int receiver_SR(int sockfd, int fd)
   close(sockfd);
   return 0;
 }
+/*
+* ici, on créer le socket, puis on le bind, la connection se fera dans le sender
+*/
 
+int create_socketv2(struct sockaddr_in6 *addr, int port){
+  if(addr==NULL||port<1){
+	fprintf(stderr, "create_socket => ERROR : sockfd < 0 || addr ==NULL\n");
+	return -1;
+	}
+	//creer le socket
+ 	int sfd = socket(PF_INET6,SOCK_DGRAM,IPPROTO_UDP);
+	if(sfd == -1){
+    	fprintf(stderr, "create_socket : %s\n",strerror(errno));
+    	return -1;
+	}
+	addr->sin6_family = AF_INET6;
+	//set le port
+	uint16_t port_network_endian = htons(port);
+	memcpy((void*)&addr->sin6_port,(const void *)&port_network_endian,sizeof(uint16_t));
+	//connect le socket
+	int err_num = bind(sfd,(struct sockaddr*)addr,sizeof(struct sockaddr_in6));
 
+	if(err_num != 0){
+	fprintf(stderr, "create_socketv2 : %s\n",strerror(errno));
+	return -1;
+	}
+	//renvoie le sfd
+	return sfd;
+}
 int main(int argc, char **argv)
 {
   get_args(argc,argv);
@@ -228,10 +259,9 @@ int main(int argc, char **argv)
 	if(error){
 		fprintf(stderr,"error while resolving hostname to a sockaddr_in6");
 	}
-
-  int sfd = create_socket(&addr,0,NULL,0);// pour create socket, il faut deux adresses, et deux int port.
-  //je pense qu'il faut faire un wait for client ici pour avoir l'adresse lors du premier message
-
+  //bind le socket
+  int port_int=atoi(port);
+  int sfd = create_socketv2(&addr,port_int);
   if(sfd == -1) return -1;
 
   if(wait_for_client(sfd) < 0)

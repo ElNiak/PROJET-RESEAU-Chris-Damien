@@ -2,8 +2,8 @@
 #include "create_socket.h"
 #include "wait_for_client.h"
 #include "read_write_loop.h"
-#include "sender.h"
 #include "packet_interface.h"
+#include <errno.h>
 #include <stdlib.h>
 #include <netinet/in.h>
 #include <getopt.h>
@@ -342,8 +342,37 @@ int sender_SR(int sockfd, int fd)
 	close(sockfd);
 	return 0;
 }
+/*
+* ici on créer le socket, et on le connecte. le socket est bind dans le receiver,
+*attendu que le receiver est lancé en premier.
+*/
+int create_socketv2(struct sockaddr_in6 *addr, int port){
 
+	if(addr==NULL||port<1){
+	fprintf(stderr, "create_socket => ERROR : sockfd < 0 || addr ==NULL\n");
+	return -1;
+	}
+	//creer le socket
+ 	int sfd = socket(PF_INET6,SOCK_DGRAM,IPPROTO_UDP);
+	if(sfd == -1){
+    	fprintf(stderr, "create_socket : %s\n",strerror(errno));
+    	return -1;
+	}
+	addr->sin6_family = AF_INET6;
+	//set le port
+	uint16_t port_network_endian = htons(port);
+	memcpy((void*)&addr->sin6_port,(const void *)&port_network_endian,sizeof(uint16_t));
+	//connect le socket
+	int err_num = connect(sfd,(struct sockaddr*)addr,sizeof(struct sockaddr_in6));
 
+	if(err_num != 0){
+	fprintf(stderr, "create_socketv2 : %s\n",strerror(errno));
+	return -1;
+	}
+	//renvoie le sfd
+	return sfd;
+
+}
 int main(int argc, char **argv){
 
 	get_args(argc,argv);
@@ -354,19 +383,25 @@ int main(int argc, char **argv){
 		fprintf(stderr,"sender => could not resolve hostname %s, %s\n",hostname, err);
 		return -1;
 	}
-
-	int sfd = create_socket(&addr,0,NULL,0);
+	int port_int=atoi(port);
+	int sfd = create_socketv2(&addr,port_int);
 	if(sfd == -1){
 		fprintf(stderr, "sender => could not create socket : sfd = -1\n");
 		return -1;
 	}
 	int fd;
+	FILE *f;
 	if(file==NULL)
 	{
-		fd=1;
-		printf("%i\n",fd);
+		fd=STDIN_FILENO;
 	}
 	else{
-		fd=open(file,O_WRONLY|O_CREAT);
+		f=fopen(file,"r");
+		fd=open(file,O_RDONLY);
 	}
+	int err_sr=sender_SR(sfd,fd);
+	if(err_sr!=0){
+		fprintf(stderr,"error while executing sender_SR");
+	}
+	return 0;
 }

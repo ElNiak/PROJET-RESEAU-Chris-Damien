@@ -1,12 +1,13 @@
 GCC = gcc
-CFLAGS = -Wall -W -Werror -std=gnu99 -g 
+CFLAGS = -std=gnu99 -g 
+OPT= -Werror -W -Wall
 OBJ = src/real_address.o src/create_socket.o src/packet_implement.o src/wait_for_client.o
-hFILES= src/packet_interface.h src/real_address.h src/wait_for_client.h src/create_socket.h
+HFILES= src/packet_interface.h src/real_address.h src/wait_for_client.h src/create_socket.h
 
-all : receiver sender tests clear
+all : receiver sender clear
 
 tests : $(OBJ) tests/test.o
-	$(CC) -o $@ $^ $(CFLAGS)  
+	$(GCC) -o $@ $^ $(CFLAGS)  
 
 receiver :  $(OBJ)  src/receiver.o 
 	$(GCC) -o $@ $^ $(CFLAGS) -lz 
