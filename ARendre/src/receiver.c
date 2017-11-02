@@ -18,6 +18,7 @@
 #include <zlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <arpa/inet.h>
 
 char *file=NULL;
 char *hostname=NULL;
@@ -117,10 +118,10 @@ int receiver_SR(int sockfd, int fd)
   while(loop)
   {
     pfds[0].fd = sockfd;
-    pfds[0].events = POLLIN | POLLPRI;
+    pfds[0].events = POLLIN | POLLPRI | POLLOUT;
 
     pfds[1].fd = sockfd;
-    pfds[1].events = POLLIN | POLLPRI;
+    pfds[1].events = POLLIN | POLLPRI |POLLOUT;
 
     nbFd = poll(pfds,2,-1); //timeout = -1 => Pour illimite
     if(nbFd == -1)
@@ -251,24 +252,48 @@ int create_socketv2(struct sockaddr_in6 *addr, int port){
 	//renvoie le sfd
 	return sfd;
 }
+
+char *get_ip_str(struct sockaddr_in6 *sa, char *s, size_t maxlen)
+{
+    inet_ntop(AF_INET6, &(((struct sockaddr_in6 *)sa)->sin6_addr),s, maxlen);
+    return s;
+}
+
+
 int main(int argc, char **argv)
 {
+  fprintf(stderr, "receiver => main() : get_args : ?\n");
   get_args(argc,argv);
+  fprintf(stderr, "receiver => main() : get_args : OK\n");
+
   struct sockaddr_in6 addr;
+  fprintf(stderr, "receiver => main() : real_address : ?\n");
   const char *error=real_address(hostname,&addr);
+  fprintf(stderr, "receiver => main() : real_address : OK\n");
+
 	if(error){
 		fprintf(stderr,"error while resolving hostname to a sockaddr_in6");
 	}
   //bind le socket
   int port_int=atoi(port);
-  int sfd = create_socketv2(&addr,port_int);
-  if(sfd == -1) return -1;
+  fprintf(stderr, "== receiver => port listen : %d\n",port_int);
+  char res [50];
+	get_ip_str(&addr,res,50);
+  fprintf(stderr, "== receiver => ipv6  : %s\n",res);
+  fprintf(stderr, "receiver => main() : create_socketv2 : ?\n");
+  //int sfd = create_socketv2(&addr,port_int);
+  int sfd = create_socket(&addr,port_int,NULL,-1);
+  fprintf(stderr, "receiver => main() : create_socketv2 : OK\n");
 
-  if(wait_for_client(sfd) < 0)
+
+  if(sfd == -1) return -1;
+  fprintf(stderr, "receiver => main() : wait_for_client : ?\n");
+  if(sfd > 0 && wait_for_client(sfd) < 0)
   {
     close(sfd);
     return -1;
   }
+  fprintf(stderr, "receiver => main() : wait_for_client : OK\n");
 
   int fd;
   if(file == NULL) //filename a recuperer dans les argc
@@ -279,9 +304,10 @@ int main(int argc, char **argv)
   {
     fd = open(file,O_WRONLY|O_CREAT);
   }
-
+  fprintf(stderr, "receiver => main() : receiver_SR : ?\n");
   int err = receiver_SR(sfd,fd);
   if(err == -1) return -1;
+  fprintf(stderr, "receiver => main() : receiver_SR : OK\n");
 
   return 0;
 }

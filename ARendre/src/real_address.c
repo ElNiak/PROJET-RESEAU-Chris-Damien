@@ -19,7 +19,9 @@ int status;
 
 memset(&hints,0,sizeof(hints));
 hints.ai_family = AF_INET6;
-hints.ai_socktype = SOCK_STREAM;
+hints.ai_socktype = SOCK_DGRAM;
+hints.ai_protocol = IPPROTO_UDP;
+//hints.ai_flags = AI_PASSIVE;
 
 if((status = getaddrinfo(address,NULL,&hints,&res)) != 0)
 {
@@ -28,7 +30,7 @@ if((status = getaddrinfo(address,NULL,&hints,&res)) != 0)
 }
 
     struct sockaddr_in6 * addr = (struct sockaddr_in6 *) res->ai_addr;
-    memcpy(rval, addr, res->ai_addrlen); // copy the resulting IPv6 address to rval
+    memcpy(rval, addr, sizeof(struct sockaddr_in6)); // copy the resulting IPv6 address to rval
 
     freeaddrinfo(res);
     return NULL;
