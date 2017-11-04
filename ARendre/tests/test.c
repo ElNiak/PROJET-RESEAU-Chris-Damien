@@ -93,10 +93,10 @@ void test_read_write_loop(void){
    }
 
    /* add the tests to the suite */
-   if ( (NULL == CU_add_test(pSuite, "test_real_address", test_init)) ||
-        (NULL == CU_add_test(pSuite, "test_create_socket", test_init)) ||
-        (NULL == CU_add_test(pSuite, "test_wait_for_client", test_init)) ||
-        (NULL == CU_add_test(pSuite, "test_read_write_loop", test_convert))
+   if ( (NULL == CU_add_test(pSuite, "test_real_address", test_real_address)) ||
+        (NULL == CU_add_test(pSuite, "test_create_socket", test_create_socket)) ||
+        (NULL == CU_add_test(pSuite, "test_wait_for_client", test_wait_for_client)) ||
+        (NULL == CU_add_test(pSuite, "test_read_write_loop", test_read_write_loop))
       )
    {
       CU_cleanup_registry();
@@ -121,4 +121,3 @@ void test_read_write_loop(void){
    CU_cleanup_registry();
    return CU_get_error();
  }
-

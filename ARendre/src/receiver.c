@@ -76,7 +76,7 @@ int acknowledgement(uint8_t window, int sockfd, uint8_t seq_num)
   pkt_set_window(ackgmt_pkt,window);
   pkt_set_seqnum(ackgmt_pkt,seq_num);
 
-  char * ackgmt_mess = calloc(12,sizeof(char));
+  char ackgmt_mess [12];
   size_t length = 12;
   pkt_status_code code = pkt_encode(ackgmt_pkt,ackgmt_mess,&length);
 
@@ -110,7 +110,7 @@ int receiver_SR(int sockfd, int fd)
 
   uint8_t seqnum = 0;
   ssize_t read;
-  char *buffer;
+  char buffer [524];
   struct pollfd pfds[2];
   int loop = 1;
   int nbFd;
@@ -121,9 +121,9 @@ int receiver_SR(int sockfd, int fd)
     pfds[0].events = POLLIN | POLLPRI;
 
     pfds[1].fd = sockfd;
-    pfds[1].events = POLLIN | POLLPRI ;
+    pfds[1].events = POLLOUT  ;
 
-    nbFd = poll(pfds,2,-1); //timeout = -1 => Pour illimite
+    nbFd = poll(pfds,2,-1); //delay = -1 => Pour illimite
     if(nbFd == -1)
     {
       fprintf(stderr, "receiver => error poll()");
@@ -132,9 +132,9 @@ int receiver_SR(int sockfd, int fd)
 
 
 
-    if ((pfds[0].revents & POLLIN) && (pfds[1].revents & POLLIN))
+    if ((pfds[0].revents & POLLIN) && (pfds[1].revents & POLLOUT))
     { // check for events on sockfd read :
-      buffer = calloc(524,sizeof(char));
+    //  buffer = calloc(524,sizeof(char));
       read = recv(sockfd,buffer,MAX_PAYLOAD_SIZE+12,0); //nb de byte lu
       // tu avais mi sfd mais sfd ne corrspond a rien, je suppose que tu voulais mettre sockfd.
       if(read > 0)
@@ -238,14 +238,19 @@ int main(int argc, char **argv)
   get_args(argc,argv);
   fprintf(stderr, "receiver => main() : get_args : OK\n");
 
+
+
   struct sockaddr_in6 addr;
   fprintf(stderr, "receiver => main() : real_address : ?\n");
   const char *error=real_address(hostname,&addr);
-  fprintf(stderr, "receiver => main() : real_address : OK\n");
-
 	if(error){
 		fprintf(stderr,"error while resolving hostname to a sockaddr_in6");
 	}
+  fprintf(stderr, "receiver => main() : real_address : OK\n");
+
+
+
+
   //bind le socket
   int port_int=atoi(port);
   fprintf(stderr, "== receiver => port listen : %d\n",port_int);
@@ -255,6 +260,9 @@ int main(int argc, char **argv)
   fprintf(stderr, "receiver => main() : create_socketv2 : ?\n");
   int sfd = create_socket(&addr,port_int,NULL,-1);
   fprintf(stderr, "receiver => main() : create_socketv2 : OK\n");
+
+
+
 
 
   if(sfd == -1) return -1;

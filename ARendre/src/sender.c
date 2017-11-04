@@ -88,7 +88,7 @@ int sender_SR(int sockfd, int fd)
 	int nbReadPack = -1;
 	char payload[MAX_PAYLOAD_SIZE];
 	char packet[MAX_PAYLOAD_SIZE+12];
-	char acknowledgement[12];
+	char acknowledgements[12];
 	//int mfd = sockfd+1;
 	struct pollfd pfds[2];
 	int loop = 1;
@@ -98,10 +98,10 @@ int sender_SR(int sockfd, int fd)
 	fprintf(stderr, "sender => sender_SR() : loop : ?\n");
 	while(loop)
 	{
-		pfds[0].fd = sockfd;
-		pfds[0].events =  POLLOUT;
+		pfds[0].fd = sockfd;//reader
+		pfds[0].events = POLLIN | POLLPRI;;
 
-		pfds[1].fd = sockfd;
+		pfds[1].fd = sockfd;//writer
 		pfds[1].events = POLLOUT;
 		fprintf(stderr, "sender => sender_SR() : poll : ?\n");
 		nbFd = poll(pfds,2,-1); //timeout = -1 => Pour illimite
@@ -111,10 +111,10 @@ int sender_SR(int sockfd, int fd)
 			return -1;
 		}
 		fprintf(stderr, "sender => sender_SR() : poll : OK\n");
-		if(pfds[0].revents & POLLOUT)
+		if(pfds[0].revents & POLLIN)
 		{
 			fprintf(stderr, "sender => sender_SR() : recv : ?\n");
-			nbAck = recv(sockfd,acknowledgement,12,0);
+			nbAck = recv(sockfd,acknowledgements,12,0);
 			if(nbAck == -1)
 			{
 				fprintf(stderr, "sender => error rcv()");
@@ -123,10 +123,10 @@ int sender_SR(int sockfd, int fd)
 			fprintf(stderr, "sender => sender_SR() : recv : OK\n");
 			pkt_t * ack = pkt_new();
 			fprintf(stderr, "sender => sender_SR() : pkt_decode 1 : ?\n");
-			pkt_status_code status = pkt_decode(acknowledgement,12,ack);
+			pkt_status_code status = pkt_decode(acknowledgements,12,ack);
 			if(status != PKT_OK)
 			{
-				fprintf(stderr, "sender => error pkt_decode()");
+				fprintf(stderr, "sender => error pkt_decode()\n");
 				return -1;
 			}
 			fprintf(stderr, "sender => sender_SR() : pkt_decode : OK\n");
@@ -191,7 +191,7 @@ int sender_SR(int sockfd, int fd)
 				status = pkt_encode(new,packet,&len);
 				if(status != PKT_OK)
 				{
-					fprintf(stderr, "sender => error pkt_encode() - 1");
+					fprintf(stderr, "sender => error pkt_encode() - 1\n");
 					return -1;
 				}
 				uint8_t pos_buffer = 0;
@@ -209,7 +209,7 @@ int sender_SR(int sockfd, int fd)
 
 				if(reads == -1)
 				{
-					fprintf(stderr, "sender => error send() - 1");
+					fprintf(stderr, "sender => error send() - 1\n");
 					return -1;
 				}
 			}
@@ -256,24 +256,24 @@ int sender_SR(int sockfd, int fd)
 	while (!disconnected)
 	{
 		pfds[0].fd = sockfd;
-		pfds[0].events = POLLIN | POLLPRI | POLLOUT;
+		pfds[0].events = POLLIN | POLLPRI;
 
 		pfds[1].fd = sockfd;
-		pfds[1].events = POLLIN | POLLPRI | POLLOUT;
+		pfds[1].events = POLLPRI | POLLOUT;
 
 		nbFd = poll(pfds,2,-1); //timeout = -1 => Pour illimite
 		if(nbFd == -1)
 		{
-			fprintf(stderr, "sender => error poll() - 2");
+			fprintf(stderr, "sender => error poll() - 2\n");
 			return -1;
 		}
 
-		if(pfds[0].revents & POLLOUT)
+		if(pfds[0].revents & POLLIN)
 		{
-			memset(acknowledgement,0,12);
-			nbAck = recv(sockfd,acknowledgement,12,0);
+			memset(acknowledgements,0,12);
+			nbAck = recv(sockfd,acknowledgements,12,0);
 			pkt_t * ack2 = pkt_new();
-			pkt_status_code status = pkt_decode(acknowledgement,12,ack2);
+			pkt_status_code status = pkt_decode(acknowledgements,12,ack2);
 			if(status != PKT_OK)
 			{
 				fprintf(stderr, "sender => error decode - 4\n");
@@ -393,7 +393,7 @@ int main(int argc, char **argv){
 	fprintf(stderr, "sender => main() : sender_SR : ?\n");
 	int err_sr=sender_SR(sfd,fd);
 	if(err_sr!=0){
-		fprintf(stderr,"error while executing sender_SR");
+		fprintf(stderr,"error while executing sender_SR\n");
 	}
 	fprintf(stderr, "sender => main() : sender_SR : OK\n");
 	return 0;

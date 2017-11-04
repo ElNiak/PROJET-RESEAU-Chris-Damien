@@ -1,9 +1,9 @@
 #include <stdio.h>
-#include <stdlib.h> 
-#include <zlib.h> 
-#include <string.h> 
-#include <netinet/in.h> 
-#include <time.h> 
+#include <stdlib.h>
+#include <zlib.h>
+#include <string.h>
+#include <netinet/in.h>
+#include <time.h>
 #include "packet_interface.h"
 
 
@@ -12,7 +12,7 @@
 
 pkt_t* pkt_new()
 {
-	 return calloc(1,sizeof(pkt_t));
+	return calloc(1,sizeof(pkt_t));
 }
 
 void pkt_del(pkt_t *pkt)
@@ -22,8 +22,8 @@ void pkt_del(pkt_t *pkt)
 	}
 	if(pkt_get_length (pkt)!= 0){
 		free(pkt->payload);
-    }
-    free(pkt);
+	}
+	free(pkt);
 }
 
 ptypes_t pkt_get_type  (const pkt_t* pkt)
@@ -146,12 +146,12 @@ pkt_status_code pkt_set_payload(pkt_t *pkt, const char *data, const uint16_t len
 	}
 
 	pkt->payload=(char *) malloc(sizeof(char )*length);
-    if(pkt->payload == NULL){
-        return E_NOMEM;
-    }
-    memcpy(pkt->payload,data,length);
-    pkt_set_length(pkt,length);
-    return PKT_OK;
+	if(pkt->payload == NULL){
+		return E_NOMEM;
+	}
+	memcpy(pkt->payload,data,length);
+	pkt_set_length(pkt,length);
+	return PKT_OK;
 }
 
 pkt_status_code pkt_set_crc2(pkt_t *pkt, const uint32_t crc2)
@@ -183,12 +183,12 @@ pkt_status_code pkt_decode(const char *data, const size_t len, pkt_t *pkt)
 
 	//set seqnum
 	memcpy(&(pkt->seqnum),data+1,sizeof(uint8_t));
-
+	
 	//set length
 	memcpy(&(pkt->length),data+2,sizeof(uint16_t));
 	pkt->length=ntohs(pkt->length);
 	if(pkt->length > 512){
-			return E_LENGTH;
+		return E_LENGTH;
 	}
 	//set timestamp
 	memcpy(&(pkt->timestamp),data+4,sizeof(uint32_t));

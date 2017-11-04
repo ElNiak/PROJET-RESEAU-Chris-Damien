@@ -2,6 +2,7 @@
 #include <sys/types.h> /* sockaddr_in6 */
 #include <stdlib.h>
 #include <stdio.h>
+#include "string.h"
 /* Creates a socket and initialize it
  * @source_addr: if !NULL, the source address that should be bound to this socket
  * @src_port: if >0, the port on which the socket is listening
@@ -24,7 +25,9 @@ int create_socket(struct sockaddr_in6 *source_addr,  int src_port,struct sockadd
       source_addr->sin6_family = AF_INET6;
       if(src_port > 0)
       {
-        source_addr->sin6_port  = htons(src_port);
+        uint16_t port = htons(src_port);
+        memcpy(&source_addr->sin6_port,&port,sizeof(uint16_t));
+        //source_addr->sin6_port  = htons(src_port);
       }
       if(bind(sockfd,(struct sockaddr *) source_addr, sizeof(struct sockaddr_in6)) != 0)
       {
@@ -37,7 +40,9 @@ int create_socket(struct sockaddr_in6 *source_addr,  int src_port,struct sockadd
       dest_addr->sin6_family = AF_INET6;
       if(dst_port > 0)
       {
-        dest_addr->sin6_port = htons(dst_port);
+        uint16_t port = htons(dst_port);
+        memcpy(&dest_addr->sin6_port,&port,sizeof(uint16_t));
+        //dest_addr->sin6_port = htons(dst_port);
       }
       if(connect(sockfd, (struct sockaddr *) dest_addr, sizeof(struct sockaddr_in6)) != 0)
       {
