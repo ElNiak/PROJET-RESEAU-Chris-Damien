@@ -285,7 +285,6 @@ pkt_status_code pkt_encode(const pkt_t* pkt, char *buf, size_t *len)
 	uint32_t bufferCRC1=htonl(crc1);
 	memcpy(buf+8,&bufferCRC1,sizeof(uint32_t));
 	free(buf1);
-
 	//check if package got a payload
 	if(pkt_get_tr(pkt) != 0){
 		fprintf(stderr, "packet_interface =>  pkt_encode() - PKT_OK - pkt_get_tr(pkt) != 0\n");
