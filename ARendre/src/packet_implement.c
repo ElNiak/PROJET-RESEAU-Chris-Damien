@@ -12,7 +12,7 @@
 
 pkt_t* pkt_new()
 {
-	 return calloc(1,sizeof(pkt_t));
+	return calloc(1,sizeof(pkt_t));
 }
 
 void pkt_del(pkt_t *pkt)
@@ -22,8 +22,8 @@ void pkt_del(pkt_t *pkt)
 	}
 	if(pkt_get_length (pkt)!= 0){
 		free(pkt->payload);
-    }
-    free(pkt);
+	}
+	free(pkt);
 }
 
 ptypes_t pkt_get_type  (const pkt_t* pkt)
@@ -146,12 +146,12 @@ pkt_status_code pkt_set_payload(pkt_t *pkt, const char *data, const uint16_t len
 	}
 
 	pkt->payload=(char *) malloc(sizeof(char )*length);
-    if(pkt->payload == NULL){
-        return E_NOMEM;
-    }
-    memcpy(pkt->payload,data,length);
-    pkt_set_length(pkt,length);
-    return PKT_OK;
+	if(pkt->payload == NULL){
+		return E_NOMEM;
+	}
+	memcpy(pkt->payload,data,length);
+	pkt_set_length(pkt,length);
+	return PKT_OK;
 }
 
 pkt_status_code pkt_set_crc2(pkt_t *pkt, const uint32_t crc2)
@@ -188,7 +188,7 @@ pkt_status_code pkt_decode(const char *data, const size_t len, pkt_t *pkt)
 	memcpy(&(pkt->length),data+2,sizeof(uint16_t));
 	pkt->length=ntohs(pkt->length);
 	if(pkt->length > 512){
-			return E_LENGTH;
+		return E_LENGTH;
 	}
 	//set timestamp
 	memcpy(&(pkt->timestamp),data+4,sizeof(uint32_t));
@@ -244,6 +244,7 @@ pkt_status_code pkt_decode(const char *data, const size_t len, pkt_t *pkt)
 
 pkt_status_code pkt_encode(const pkt_t* pkt, char *buf, size_t *len)
 {
+	fprintf(stderr, "packet_interface =>  pkt_encode() - 1\n");
 	if(*len < 12){
 		return E_NOMEM;
 	}
@@ -259,6 +260,7 @@ pkt_status_code pkt_encode(const pkt_t* pkt, char *buf, size_t *len)
 
 	//chekc if buff is big enough
 	if(pkt->length >512){
+		fprintf(stderr, "packet_interface =>  pkt_encode() - pkt->length >512\n");
 		return E_LENGTH;
 	}
 	//change to nbo and copy length
@@ -274,6 +276,7 @@ pkt_status_code pkt_encode(const pkt_t* pkt, char *buf, size_t *len)
 	uint32_t crc1 = crc32(0L, Z_NULL, 0);
 	unsigned char *buf1=(unsigned char*) malloc(8);
 	if(buf1 ==NULL){
+		fprintf(stderr, "packet_interface =>  pkt_encode() - buf1 == NULL \n");
 		return E_NOMEM;
 	}
 	memcpy(buf1,buf,8);
@@ -282,11 +285,21 @@ pkt_status_code pkt_encode(const pkt_t* pkt, char *buf, size_t *len)
 	uint32_t bufferCRC1=htonl(crc1);
 	memcpy(buf+8,&bufferCRC1,sizeof(uint32_t));
 	free(buf1);
+<<<<<<< HEAD
 
 
+=======
+	//check if package got a payload
+	if(pkt_get_tr(pkt) != 0){
+		fprintf(stderr, "packet_interface =>  pkt_encode() - PKT_OK - pkt_get_tr(pkt) != 0\n");
+		*len=12;
+		return PKT_OK;
+	}
+>>>>>>> 3964acd14ce0bdd125d83d031dba1f74e8fae96e
 
 	//check if buf is big enough
-	if(*len < (size_t)pkt_get_length(pkt)+16){
+	if(*len < (size_t)pkt_get_length(pkt)+12){
+		fprintf(stderr, "packet_interface =>  pkt_encode() - *len < (size_t)pkt_get_length(pkt)+16 : *len : %zu - pkt_get_length(pkt)+16) : %d \n",*len,pkt_get_length(pkt)+16);
 		return E_NOMEM;
 	}
 	//copy payload
@@ -297,6 +310,7 @@ pkt_status_code pkt_encode(const pkt_t* pkt, char *buf, size_t *len)
 
 		unsigned char *buf2=(unsigned char *) malloc(pkt_get_length(pkt));
 		if(buf2==NULL){
+			fprintf(stderr, "packet_interface =>  pkt_encode() - buf2 == NULL \n");
 			return E_NOMEM;
 		}
 		uint32_t crc2=crc32(0L, Z_NULL, 0);
@@ -308,8 +322,9 @@ pkt_status_code pkt_encode(const pkt_t* pkt, char *buf, size_t *len)
 		memcpy(buf+12+pkt_get_length(pkt),&crc2,sizeof(uint32_t));
 		free(buf2);
 		//update len
-		*len=16+pkt_get_length(pkt);
+		*len=12+pkt_get_length(pkt);
 
 	}
+	fprintf(stderr, "packet_interface =>  pkt_encode() - 2 PKT_OK \n");
 	return PKT_OK;
 }
