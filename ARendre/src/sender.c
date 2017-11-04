@@ -167,7 +167,7 @@ int sender_SR(int sockfd, int fd)
 		}
 		if(pfds[1].revents & POLLOUT) //envoie de packet
 		{
-			fprintf(stderr, "sender => sender_SR() : CASE 2 ===========================\n");
+			fprintf(stderr, "sender => sender_SR() : CASE 2 ===========================\n %i, %i\n",window,loopSend);
 			if(window > 0 && !loopSend)
 			{
 				fprintf(stderr, "sender => sender_SR() : CASE 2 => INSIDE ===========================\n");
