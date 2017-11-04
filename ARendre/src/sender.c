@@ -103,16 +103,18 @@ int sender_SR(int sockfd, int fd)
 
 		pfds[1].fd = sockfd;//writer
 		pfds[1].events = POLLOUT;
-		fprintf(stderr, "sender => sender_SR() : poll : ?\n");
+		fprintf(stderr, "sender => sender_SR() : poll1 : ?\n");
 		nbFd = poll(pfds,2,-1); //timeout = -1 => Pour illimite
 		if(nbFd == -1)
 		{
 			fprintf(stderr, "sender => error poll() - 1");
 			return -1;
 		}
-		fprintf(stderr, "sender => sender_SR() : poll : OK\n");
+		fprintf(stderr, "sender => sender_SR() : poll1 : OK\n");
 		if(pfds[0].revents & POLLIN)
 		{
+			fprintf(stderr, "sender => sender_SR() : CASE 1 ===========================\n");
+
 			fprintf(stderr, "sender => sender_SR() : recv : ?\n");
 			nbAck = recv(sockfd,acknowledgements,12,0);
 			if(nbAck == -1)
@@ -165,10 +167,17 @@ int sender_SR(int sockfd, int fd)
 		}
 		if(pfds[1].revents & POLLOUT) //envoie de packet
 		{
+			fprintf(stderr, "sender => sender_SR() : CASE 2 ===========================\n");
 			if(window > 0 && !loopSend)
 			{
+				fprintf(stderr, "sender => sender_SR() : CASE 2 => INSIDE ===========================\n");
+
 				memset(payload,0,512);
+				fprintf(stderr, "sender => sender_SR() : read2 : ?\n");
+
 				nbReadPack = read(fd,payload,512);
+				fprintf(stderr, "sender => sender_SR() : read2 : OK\n");
+
 				if(nbReadPack == 0)
 				{
 					loopSend = 1;
@@ -201,8 +210,11 @@ int sender_SR(int sockfd, int fd)
 				}
 				snd_pkt[pos_buffer] = new;
 				window--;
+				fprintf(stderr, "sender => sender_SR() : send2 : ?\n");
 
 				reads = send(sockfd,packet,len,0);
+				fprintf(stderr, "sender => sender_SR() : send2 : OK\n");
+
 				struct timeval * ntime = malloc(sizeof(struct timeval));
 				gettimeofday(ntime,NULL);
 				time_buffer[pos_buffer] = ntime;
@@ -215,6 +227,8 @@ int sender_SR(int sockfd, int fd)
 		}
 		if(pfds[1].revents & POLLOUT) // packet perdu
 		{
+			fprintf(stderr, "sender => sender_SR() : CASE 3 ===========================\n");
+
 			for(int i = 0; i < max_wind ; i++)
 			{
 				if(time_buffer[i] != NULL)
@@ -231,8 +245,11 @@ int sender_SR(int sockfd, int fd)
 							fprintf(stderr, "sender => error pkt_encode() - 2\n");
 							return -1;
 						}
+						fprintf(stderr, "sender => sender_SR() : send3 : ?\n");
 
 						reads = send(sockfd,packet,len,0);
+						fprintf(stderr, "sender => sender_SR() : send3 : OK\n");
+
 						gettimeofday(time_buffer[i],NULL);
 						if(reads == -1)
 						{
@@ -259,8 +276,11 @@ int sender_SR(int sockfd, int fd)
 
 		pfds[1].fd = sockfd;
 		pfds[1].events = POLLPRI | POLLOUT;
+		fprintf(stderr, "sender => sender_SR() : poll2 : OK\n");
 
 		nbFd = poll(pfds,2,-1); //timeout = -1 => Pour illimite
+		fprintf(stderr, "sender => sender_SR() : poll2 : ?\n");
+
 		if(nbFd == -1)
 		{
 			fprintf(stderr, "sender => error poll() - 2\n");
@@ -269,8 +289,14 @@ int sender_SR(int sockfd, int fd)
 
 		if(pfds[0].revents & POLLIN)
 		{
+			fprintf(stderr, "sender => sender_SR() : CASE 4 ===========================\n");
+
 			memset(acknowledgements,0,12);
+			fprintf(stderr, "sender => sender_SR() : recv2 : ?\n");
+
 			nbAck = recv(sockfd,acknowledgements,12,0);
+			fprintf(stderr, "sender => sender_SR() : recv2 : OK\n");
+
 			pkt_t * ack2 = pkt_new();
 			pkt_status_code status = pkt_decode(acknowledgements,12,ack2);
 			if(status != PKT_OK)
@@ -284,8 +310,10 @@ int sender_SR(int sockfd, int fd)
 			}
 		}
 
-		if(pfds[1].revents & POLLOUT && ! disconnected)
+		if(pfds[1].revents & POLLOUT &&  !disconnected)
 		{
+			fprintf(stderr, "sender => sender_SR() : CASE 5 ===========================\n");
+
 			char bufack[12];
 			if(time_buffer[0] == NULL)
 			{
@@ -303,9 +331,12 @@ int sender_SR(int sockfd, int fd)
 					fprintf(stderr, "sender => error encode() - 3\n");
 					return -1;
 				}
+				fprintf(stderr, "sender => sender_SR()  : send4 : ?\n");
 
 				snd_pkt[0] = disco;
 				reads = send(sockfd,bufack,len,0);
+				fprintf(stderr, "sender => sender_SR() : send4 : OK\n");
+
 				struct timeval * newtime = malloc(sizeof(struct timeval));
 				gettimeofday(newtime,NULL);
 				time_buffer[0] = newtime;
@@ -329,7 +360,10 @@ int sender_SR(int sockfd, int fd)
 						fprintf(stderr, "sender => error encode() - 4\n");
 						return -1;
 					}
+					fprintf(stderr, "sender => sender_SR() : send5 : ?\n");
 					reads = send(sockfd,bufack,len,0);
+					fprintf(stderr, "sender => sender_SR() : send5 : OK\n");
+
 					if(reads == -1)
 					{
 						disconnected = 1;
