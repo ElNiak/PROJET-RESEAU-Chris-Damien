@@ -165,7 +165,7 @@ pkt_status_code pkt_set_crc2(pkt_t *pkt, const uint32_t crc2)
 }
 pkt_status_code pkt_decode(const char *data, const size_t len, pkt_t *pkt)
 {
-	//	check there is a header
+	//check there is a header
 	if(len<12){
 		return E_NOHEADER;
 	}
@@ -252,6 +252,11 @@ pkt_status_code pkt_encode(const pkt_t* pkt, char *buf, size_t *len)
 	memcpy(buf,pkt,sizeof(uint8_t));
 	//copy seqnum
 	memcpy(buf+1,&(pkt->seqnum),sizeof(uint8_t));
+	//check if package got a payload
+	if(pkt_get_tr(pkt) != 0){
+		*len=12;
+		return PKT_OK;
+	}
 
 	//chekc if buff is big enough
 	if(pkt->length >512){
@@ -280,12 +285,17 @@ pkt_status_code pkt_encode(const pkt_t* pkt, char *buf, size_t *len)
 	uint32_t bufferCRC1=htonl(crc1);
 	memcpy(buf+8,&bufferCRC1,sizeof(uint32_t));
 	free(buf1);
+<<<<<<< HEAD
+
+
+=======
 	//check if package got a payload
 	if(pkt_get_tr(pkt) != 0){
 		fprintf(stderr, "packet_interface =>  pkt_encode() - PKT_OK - pkt_get_tr(pkt) != 0\n");
 		*len=12;
 		return PKT_OK;
 	}
+>>>>>>> 3964acd14ce0bdd125d83d031dba1f74e8fae96e
 
 	//check if buf is big enough
 	if(*len < (size_t)pkt_get_length(pkt)+12){
