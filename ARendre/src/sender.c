@@ -206,7 +206,6 @@ int sender_SR(int sockfd, int fd)
 				struct timeval * ntime = malloc(sizeof(struct timeval));
 				gettimeofday(ntime,NULL);
 				time_buffer[pos_buffer] = ntime;
-
 				if(reads == -1)
 				{
 					fprintf(stderr, "sender => error send() - 1\n");
@@ -229,7 +228,7 @@ int sender_SR(int sockfd, int fd)
 						pkt_status_code status = pkt_encode(snd_pkt[i],packet,&len);
 						if(status != PKT_OK)
 						{
-							fprintf(stderr, "sender => error pkt_encode() - 2");
+							fprintf(stderr, "sender => error pkt_encode() - 2\n");
 							return -1;
 						}
 
@@ -237,7 +236,7 @@ int sender_SR(int sockfd, int fd)
 						gettimeofday(time_buffer[i],NULL);
 						if(reads == -1)
 						{
-							fprintf(stderr, "sender => error send() - 2");
+							fprintf(stderr, "sender => error send() - 2\n");
 							return -1;
 						}
 					}
