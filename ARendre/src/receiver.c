@@ -263,6 +263,8 @@ int main(int argc, char **argv)
   fprintf(stderr, "== receiver => ipv6  : %s\n",res);
   fprintf(stderr, "receiver => main() : create_socketv2 : ?\n");
   int sfd = create_socket(&addr,port_int,NULL,-1);
+  //int sfd = create_socket(NULL,-1,&addr,port_int);
+
   fprintf(stderr, "receiver => main() : create_socketv2 : OK\n");
 
 
@@ -281,7 +283,7 @@ int main(int argc, char **argv)
   int fd;
   if(file == NULL) //filename a recuperer dans les argc
   {
-    fd = 1;
+    fd = STDOUT_FILENO;
   }
   else
   {
