@@ -7,6 +7,7 @@
 #include "../src/real_address.h"
 #include "../src/various.h"
 #include "../src/wait_for_client.h"
+#include "../src/read_write_loop.h"
 #include "../src/sender.h"
 #include "../src/receiver.h"
 #include <stdio.h>  // for printf
@@ -16,15 +17,15 @@ int init_suite(void) { return 0; }
 int clean_suite(void) { return 0; }
 
 void test_real_address(void){  //RAJOUTER TEST POUR 2e set pour verifier
-  char * str1 = "::1";
-  char * str2 = "google.com";
+  const char * str1 = "::1";
+  const char * str2 = "google.com";
   struct sockaddr_in6 addr;
   struct sockaddr_in6 addr2;
   struct sockaddr_in6 addr3;
 
-  char * res1 = real_address(str1,&addr);
-  char * res2 = real_address(str2,&addr2);
-  char * res3 = real_address(NULL,&addr3);
+  const char * res1 = real_address(str1,&addr);
+  const char * res2 = real_address(str2,&addr2);
+  const char * res3 = real_address(NULL,&addr3);
 
   CU_ASSERT_PTR_NULL(res1);
   CU_ASSERT_PTR_NULL(res2);
@@ -34,12 +35,12 @@ void test_real_address(void){  //RAJOUTER TEST POUR 2e set pour verifier
 void test_create_socket(void){
   struct sockaddr_in6 source_addr;
   struct sockaddr_in6 dst_addr;
-  char res1 = real_address("::1",&source_addr);
-  char res2 = real_address("::2",&dest_addr);
+  const char res1 = real_address("::1",&source_addr);
+  const char res2 = real_address("::2",&dst_addr);
   CU_ASSERT_PTR_NULL(res1);
   CU_ASSERT_PTR_NULL(res2);
 
-  int err = create_socket(source_addr,1,dest_addr,1);
+  int err = create_socket(&source_addr,1,&dst_addr,1);
   CU_ASSERT_NOT_EQUAL(err,-1);
 }
 
@@ -47,12 +48,12 @@ void test_wait_for_client(void){
   struct sockaddr_in6 source_addr;
   struct sockaddr_in6 dst_addr;
 
-  char res1 = real_address("::1",&source_addr);
-  char res2 = real_address("::2",&dest_addr);
+  const char res1 = real_address("::1",&source_addr);
+  const char res2 = real_address("::2",&dst_addr);
   CU_ASSERT_PTR_NULL(res1);
   CU_ASSERT_PTR_NULL(res2);
 
-  int err = create_socket(&source_addr,1,&dest_addr,1);
+  int err = create_socket(&source_addr,1,&dst_addr,1);
 
   int err2 = wait_for_client(err);
   CU_ASSERT_NOT_EQUAL(err2,-1);
@@ -62,17 +63,16 @@ void test_read_write_loop(void){
   struct sockaddr_in6 source_addr;
   struct sockaddr_in6 dst_addr;
 
-  char res1 = real_address("::1",&source_addr);
-  char res2 = real_address("::2",&dest_addr);
+  const char res1 = real_address("::1",&source_addr);
+  const char res2 = real_address("::2",&dst_addr);
   CU_ASSERT_PTR_NULL(res1);
   CU_ASSERT_PTR_NULL(res2);
 
-  int err = create_socket(&source_addr,1,&dest_addr,1);
+  int err = create_socket(&source_addr,1,&dst_addr,1);
 
   int err2 = wait_for_client(err);
 
-  int err3 = read_write_loop(err);
-  CU_ASSERT_NOT_EQUAL(err3,-1);
+  read_write_loop(err);
 }
 
 
