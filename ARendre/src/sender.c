@@ -98,8 +98,10 @@ int sender_SR(int sockfd, int fd)
 	fprintf(stderr, "sender => sender_SR() : loop : ?\n");
 	while(loop)
 	{
+		fprintf(stderr, "=========================== sender => sender_SR() : max_window = %d \n",max_wind);
+		fprintf(stderr, "=========================== sender => sender_SR() : window = %d \n",window);
 		pfds[0].fd = sockfd;//reader
-		pfds[0].events = POLLIN | POLLPRI;;
+		pfds[0].events = POLLIN | POLLPRI |POLLOUT;
 
 		pfds[1].fd = sockfd;//writer
 		pfds[1].events = POLLOUT;
@@ -111,10 +113,10 @@ int sender_SR(int sockfd, int fd)
 			return -1;
 		}
 		fprintf(stderr, "sender => sender_SR() : poll1 : OK\n");
+
 		if(pfds[0].revents & POLLIN)
 		{
 			fprintf(stderr, "sender => sender_SR() : CASE 1 ===========================\n");
-
 			fprintf(stderr, "sender => sender_SR() : recv : ?\n");
 			nbAck = recv(sockfd,acknowledgements,12,0);
 			if(nbAck == -1)
@@ -237,6 +239,7 @@ int sender_SR(int sockfd, int fd)
 					gettimeofday(now,NULL);
 					if((now->tv_sec - time_buffer[i]->tv_sec)*1000 - (now->tv_usec - time_buffer[i]->tv_usec)/1000 > 1000) //1000 = timeout
 					{
+						fprintf(stderr, "sender => sender_SR() : CASE 3  : 2sd if  ===========================\n");
 						size_t len = pkt_get_length(snd_pkt[i])+12;
 						memset(packet,0,524);
 						pkt_status_code status = pkt_encode(snd_pkt[i],packet,&len);
@@ -272,7 +275,7 @@ int sender_SR(int sockfd, int fd)
 	while (!disconnected)
 	{
 		pfds[0].fd = sockfd;
-		pfds[0].events = POLLIN | POLLPRI;
+		pfds[0].events = POLLIN | POLLPRI |POLLOUT;
 
 		pfds[1].fd = sockfd;
 		pfds[1].events = POLLPRI | POLLOUT;
@@ -407,6 +410,7 @@ int main(int argc, char **argv){
 	get_ip_str(&addr,res,50);
 	fprintf(stderr, "== sender => ipv6  : %s\n",res);
 	fprintf(stderr, "sender => main() : create_socketv2 : ?\n");
+  //int sfd = create_socket(&addr,port_int,NULL,-1);
 	int sfd = create_socket(NULL,-1,&addr,port_int);
 	fprintf(stderr, "sender => main() : create_socketv2 : OK\n");
 	if(sfd == -1){
