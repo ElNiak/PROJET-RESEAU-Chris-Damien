@@ -136,7 +136,6 @@ int receiver_SR(int sockfd, int fd)
     { // check for events on sockfd read :
       buffer = calloc(524,sizeof(char));
       read = recv(sockfd,buffer,MAX_PAYLOAD_SIZE+12,0); //nb de byte lu
-      // tu avais mi sfd mais sfd ne corrspond a rien, je suppose que tu voulais mettre sockfd.
       if(read > 0)
       {
         pkt_t *new = pkt_new();
