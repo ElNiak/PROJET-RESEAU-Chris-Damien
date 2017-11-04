@@ -301,7 +301,8 @@ pkt_status_code pkt_encode(const pkt_t* pkt, char *buf, size_t *len)
 	memcpy(buf+12,pkt->payload,pkt_get_length(pkt));
 
 	// compute crc2, set payload, set crc2
-	if(pkt_get_payload(pkt) != NULL && pkt_get_tr(pkt) == 0){
+	if(pkt_get_payload(pkt) != NULL && pkt_get_tr(pkt) == 0)
+	{
 
 		unsigned char *buf2=(unsigned char *) malloc(pkt_get_length(pkt));
 		if(buf2==NULL){

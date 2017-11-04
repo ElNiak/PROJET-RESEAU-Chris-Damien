@@ -72,7 +72,7 @@ int acknowledgement(uint8_t window, int sockfd, uint8_t seq_num)
 
   pkt_t *ackgmt_pkt = pkt_new();//On cree puis initialise le packet
   pkt_set_length(ackgmt_pkt,0);
-  pkt_set_type(ackgmt_pkt,PTYPE_ACK);
+  pkt_set_type(ackgmt_pkt,PTYPE_NACK);
   pkt_set_window(ackgmt_pkt,window);
   pkt_set_seqnum(ackgmt_pkt,seq_num);
 
@@ -82,15 +82,20 @@ int acknowledgement(uint8_t window, int sockfd, uint8_t seq_num)
 
   if(code != PKT_OK)
   {
+    fprintf(stderr, "receiver => acknowledgements() : status != PKT_OK \n");
     return -1; //Erreur dans le packet
   }
   else
   {
+    fprintf(stderr, "receiver => acknowledgements() : send : ? \n");
+
     int err = send(sockfd, ackgmt_mess,sizeof(ackgmt_mess),0);
     if(err <0)
     {
       return -1; //erreur dans l'envoie de l'accusé de reception
     }
+    fprintf(stderr, "receiver => acknowledgements() : send : OK \n");
+
   }
   pkt_del(ackgmt_pkt);//suppression du packet
   return 0;
