@@ -87,7 +87,7 @@ int sender_SR(int sockfd, int fd)
 	uint16_t seqnum = 0;
 	int nbReadPack = -1;
 	char payload[MAX_PAYLOAD_SIZE];
-	char packet[MAX_PAYLOAD_SIZE+12];
+	char packet[MAX_PAYLOAD_SIZE+16];
 	char acknowledgements[12];
 	//int mfd = sockfd+1;
 	struct pollfd pfds[2];
@@ -199,8 +199,8 @@ int sender_SR(int sockfd, int fd)
 				pkt_set_timestamp(new,2);
 				pkt_set_payload(new,payload,nbReadPack);
 				pkt_status_code status;
-				size_t len = nbReadPack+12;
-				memset(packet,0,524);
+				size_t len = nbReadPack+16;
+				memset(packet,0,528);
 				status = pkt_encode(new,packet,&len);
 				if(status != PKT_OK)
 				{
@@ -226,6 +226,7 @@ int sender_SR(int sockfd, int fd)
 				time_buffer[pos_buffer] = ntime;
 				if(reads == -1)
 				{
+					free(ntime);
 					fprintf(stderr, "sender => error send() - 1\n");
 					return -1;
 				}
@@ -244,8 +245,8 @@ int sender_SR(int sockfd, int fd)
 					if((now->tv_sec - time_buffer[i]->tv_sec)*1000 - (now->tv_usec - time_buffer[i]->tv_usec)/1000 > 1000) //1000 = timeout
 					{
 						fprintf(stderr, "sender => sender_SR() : CASE 3  : 2sd if  ===========================\n");
-						size_t len = pkt_get_length(snd_pkt[i])+12;
-						memset(packet,0,524);
+						size_t len = pkt_get_length(snd_pkt[i])+16;
+						memset(packet,0,528);
 						pkt_status_code status = pkt_encode(snd_pkt[i],packet,&len);
 						if(status != PKT_OK)
 						{
@@ -349,9 +350,11 @@ int sender_SR(int sockfd, int fd)
 				time_buffer[0] = newtime;
 				if(reads == -1)
 				{
+					free(newtime);
 					fprintf(stderr, "sender => error send() -3\n");
 					return -1;
 				}
+				free(newtime);
 			}
 			else
 			{
@@ -364,6 +367,7 @@ int sender_SR(int sockfd, int fd)
 					pkt_status_code code = pkt_encode(snd_pkt[0],bufack,&len);
 					if(code != PKT_OK)
 					{
+						free(now);
 						fprintf(stderr, "sender => error encode() - 4\n");
 						return -1;
 					}
@@ -414,7 +418,6 @@ int main(int argc, char **argv){
 	get_ip_str(&addr,res,50);
 	fprintf(stderr, "== sender => ipv6  : %s\n",res);
 	fprintf(stderr, "sender => main() : create_socketv2 : ?\n");
-  //int sfd = create_socket(&addr,port_int,NULL,-1);
 	int sfd = create_socket(NULL,-1,&addr,port_int);
 	fprintf(stderr, "sender => main() : create_socketv2 : OK\n");
 	if(sfd == -1){

@@ -118,7 +118,7 @@ int receiver_SR(int sockfd, int fd)
 
   uint16_t seqnum = 0;
   ssize_t read;
-  char buffer [524];
+  char buffer [528];
   struct pollfd pfds[2];
   int loop = 1;
   int nbFd;
@@ -143,9 +143,9 @@ int receiver_SR(int sockfd, int fd)
     if ((pfds[0].revents & POLLIN) && (pfds[1].revents & POLLOUT))
     { // check for events on sockfd read :
     //  buffer = calloc(524,sizeof(char));
-      memset(buffer,0,MAX_PAYLOAD_SIZE+12);
+      memset(buffer,0,MAX_PAYLOAD_SIZE+16);
       fprintf(stderr, "receiver => receiver_SR() : recv : ?\n");
-      read = recv(sockfd,buffer,MAX_PAYLOAD_SIZE+12,0); //nb de byte lu
+      read = recv(sockfd,buffer,MAX_PAYLOAD_SIZE+16,0); //nb de byte lu
       fprintf(stderr, "receiver => receiver_SR() : recv : OK\n");
 
       if(read > 0)
@@ -282,13 +282,7 @@ int main(int argc, char **argv)
   fprintf(stderr, "== receiver => ipv6  : %s\n",res);
   fprintf(stderr, "receiver => main() : create_socketv2 : ?\n");
   int sfd = create_socket(&addr,port_int,NULL,-1);
-  //int sfd = create_socket(NULL,-1,&addr,port_int);
-
   fprintf(stderr, "receiver => main() : create_socketv2 : OK\n");
-
-
-
-
 
   if(sfd == -1) return -1;
   fprintf(stderr, "receiver => main() : wait_for_client : ?\n");
