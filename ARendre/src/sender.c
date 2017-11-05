@@ -84,7 +84,7 @@ int sender_SR(int sockfd, int fd)
 	uint8_t window = 1; // 0->31
 	uint8_t max_wind = 1;
 	int isUpdate = 0;
-	uint8_t seqnum = 0;
+	uint16_t seqnum = 0;
 	int nbReadPack = -1;
 	char payload[MAX_PAYLOAD_SIZE];
 	char packet[MAX_PAYLOAD_SIZE+12];
@@ -148,7 +148,7 @@ int sender_SR(int sockfd, int fd)
 			{
 				if(snd_pkt[i] != NULL)
 				{
-					uint8_t seqnum_pkt = pkt_get_seqnum(snd_pkt[i]);
+					uint16_t seqnum_pkt = pkt_get_seqnum(snd_pkt[i]);
 
 					if(last_ack > seqnum_pkt && (last_ack - seqnum_pkt) <= max_wind)
 					{
@@ -178,6 +178,8 @@ int sender_SR(int sockfd, int fd)
 				fprintf(stderr, "sender => sender_SR() : read2 : ?\n");
 
 				nbReadPack = read(fd,payload,512);
+				fprintf(stderr, "sender => sender_SR() : nbReadPack > 0 : nbReadPack = %d\n",(int)nbReadPack);
+
 				fprintf(stderr, "sender => sender_SR() : read2 : OK\n");
 
 				if(nbReadPack == 0)
@@ -194,7 +196,7 @@ int sender_SR(int sockfd, int fd)
 				pkt_set_seqnum(new,seqnum);
 				seqnum = (seqnum+1)%256;
 				pkt_set_window(new,window);
-				pkt_set_timestamp(new,1);
+				pkt_set_timestamp(new,2);
 				pkt_set_payload(new,payload,nbReadPack);
 				pkt_status_code status;
 				size_t len = nbReadPack+12;
@@ -215,6 +217,8 @@ int sender_SR(int sockfd, int fd)
 				fprintf(stderr, "sender => sender_SR() : send2 : ?\n");
 
 				reads = send(sockfd,packet,len,0);
+				fprintf(stderr, "sender => sender_SR() : reads > 0 : reads = %d\n",(int)reads);
+
 				fprintf(stderr, "sender => sender_SR() : send2 : OK\n");
 
 				struct timeval * ntime = malloc(sizeof(struct timeval));

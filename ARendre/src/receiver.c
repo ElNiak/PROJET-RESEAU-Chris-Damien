@@ -72,11 +72,13 @@ int acknowledgement(uint8_t window, int sockfd, uint8_t seq_num)
 
   pkt_t *ackgmt_pkt = pkt_new();//On cree puis initialise le packet
   pkt_set_length(ackgmt_pkt,0);
-  pkt_set_type(ackgmt_pkt,PTYPE_NACK);
+  pkt_set_type(ackgmt_pkt,PTYPE_ACK);
   pkt_set_window(ackgmt_pkt,window);
   pkt_set_seqnum(ackgmt_pkt,seq_num);
 
   char ackgmt_mess [12];
+  memset(ackgmt_mess,0,12);
+
   size_t length = 12;
   pkt_status_code code = pkt_encode(ackgmt_pkt,ackgmt_mess,&length);
 
@@ -92,6 +94,7 @@ int acknowledgement(uint8_t window, int sockfd, uint8_t seq_num)
     int err = send(sockfd, ackgmt_mess,sizeof(ackgmt_mess),0);
     if(err <0)
     {
+      fprintf(stderr, "receiver => acknowledgements() :send error %s\n",strerror(errno));
       return -1; //erreur dans l'envoie de l'accusé de reception
     }
     fprintf(stderr, "receiver => acknowledgements() : send : OK \n");
@@ -113,7 +116,7 @@ int receiver_SR(int sockfd, int fd)
     rcv_pkt[i] = NULL;
   }
 
-  uint8_t seqnum = 0;
+  uint16_t seqnum = 0;
   ssize_t read;
   char buffer [524];
   struct pollfd pfds[2];
@@ -137,7 +140,6 @@ int receiver_SR(int sockfd, int fd)
     }
 
 
-
     if ((pfds[0].revents & POLLIN) && (pfds[1].revents & POLLOUT))
     { // check for events on sockfd read :
     //  buffer = calloc(524,sizeof(char));
@@ -157,13 +159,13 @@ int receiver_SR(int sockfd, int fd)
           fprintf(stderr, "receiver => receiver_SR() : read == 12\n");
           if(pkt_get_seqnum(new) == seqnum)
           {
-            acknowledgement(sockfd,0,(seqnum+1)%256);
+            acknowledgement(0,sockfd,(seqnum+1)%256);
             sleep(2);
             loop = 0;
           }
           else
           {
-            acknowledgement(sockfd,0,seqnum);
+            acknowledgement(0,sockfd,seqnum);
           }
         }
         else if(decode != PKT_OK) //Erreur dans le packet
@@ -171,7 +173,7 @@ int receiver_SR(int sockfd, int fd)
           fprintf(stderr, "receiver => receiver_SR() : decode != PKT_OK \n");
           if(decode == E_CRC)
           {
-            acknowledgement(sockfd,window,seqnum);
+            acknowledgement(window,sockfd,seqnum);
           }
         }
         else
@@ -179,7 +181,10 @@ int receiver_SR(int sockfd, int fd)
           fprintf(stderr, "receiver => receiver_SR() : read > 12 \n");
           if(pkt_get_seqnum(new) == seqnum)
           { //write pck payload
+            fprintf(stderr, "receiver => receiver_SR() : read > 12 + pkt_get_seqnum(new) == seqnum\n");
+            fprintf(stderr, "receiver => receiver_SR() : write1 : ?\n");
             write(fd,pkt_get_payload(new),pkt_get_length(new));
+            fprintf(stderr, "receiver => receiver_SR() : write1 : OK\n");
             seqnum = (seqnum+1)%256;
 
             int cont = 1;
@@ -192,10 +197,9 @@ int receiver_SR(int sockfd, int fd)
                 {
                   if(pkt_get_seqnum(rcv_pkt[i]) == seqnum)
                   {
-                    fprintf(stderr, "receiver => receiver_SR() : write : ?\n");
+                    fprintf(stderr, "receiver => receiver_SR() : write2 : ?\n");
                     write(fd,pkt_get_payload(rcv_pkt[i]),pkt_get_length(rcv_pkt[i]));
-                    fprintf(stderr, "receiver => receiver_SR() : write : OK\n");
-
+                    fprintf(stderr, "receiver => receiver_SR() : write2 : OK\n");
                     seqnum = (seqnum+1)%256;
                     rcv_pkt[i] = NULL;
                     cont = 1;
@@ -203,11 +207,11 @@ int receiver_SR(int sockfd, int fd)
                 }
               }
             }
-            acknowledgement(sockfd,window,seqnum);
+            acknowledgement(window,sockfd,seqnum);
           }
-          else if(((pkt_get_seqnum(new) > seqnum) && ((pkt_get_seqnum(new) - seqnum) <= window)) ||
-          ((pkt_get_seqnum(new) < seqnum) && ((pkt_get_seqnum(new) + 255 - seqnum) <= window)))
+          else if(((pkt_get_seqnum(new) > seqnum) && ((pkt_get_seqnum(new) - seqnum) <= window)))
           { // packet dans le desordre
+            fprintf(stderr, "receiver => receiver_SR() : (pkt_get_seqnum(new) > seqnum) && ((pkt_get_seqnum(new) - seqnum) <= window))\n");
             int isIn = 0;
             for(int i = 0; i < window && !isIn ; i++)
             {
@@ -225,11 +229,11 @@ int receiver_SR(int sockfd, int fd)
               }
               rcv_pkt[pos] = new;
             }
-            acknowledgement(sockfd,window,seqnum);
+            acknowledgement(window,sockfd,seqnum);
           }
           else
           {
-            acknowledgement(sockfd, window,seqnum);
+            acknowledgement(window,sockfd,seqnum);
           }
         }
       }
