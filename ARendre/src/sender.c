@@ -194,7 +194,7 @@ int sender_SR(int sockfd, int fd)
 				pkt_set_seqnum(new,seqnum);
 				seqnum = (seqnum+1)%256;
 				pkt_set_window(new,window);
-				pkt_set_timestamp(new,2);
+				pkt_set_timestamp(new,1);
 				pkt_set_payload(new,payload,nbReadPack);
 				pkt_status_code status;
 				size_t len = nbReadPack+12;

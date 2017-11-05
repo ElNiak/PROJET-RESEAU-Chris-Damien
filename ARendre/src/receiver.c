@@ -119,6 +119,7 @@ int receiver_SR(int sockfd, int fd)
   struct pollfd pfds[2];
   int loop = 1;
   int nbFd;
+  fprintf(stderr, "receiver => receiver_SR() : loop : ?\n");
 
   while(loop)
   {
@@ -140,14 +141,20 @@ int receiver_SR(int sockfd, int fd)
     if ((pfds[0].revents & POLLIN) && (pfds[1].revents & POLLOUT))
     { // check for events on sockfd read :
     //  buffer = calloc(524,sizeof(char));
+      memset(buffer,0,MAX_PAYLOAD_SIZE+12);
+      fprintf(stderr, "receiver => receiver_SR() : recv : ?\n");
       read = recv(sockfd,buffer,MAX_PAYLOAD_SIZE+12,0); //nb de byte lu
+      fprintf(stderr, "receiver => receiver_SR() : recv : OK\n");
+
       if(read > 0)
       {
+        fprintf(stderr, "receiver => receiver_SR() : read > 0 : read = %d\n",(int)read);
         pkt_t *new = pkt_new();
         pkt_status_code decode = pkt_decode(buffer, read, new);
 
         if(read == 12) //les 12 bits en plus de payload
         {
+          fprintf(stderr, "receiver => receiver_SR() : read == 12\n");
           if(pkt_get_seqnum(new) == seqnum)
           {
             acknowledgement(sockfd,0,(seqnum+1)%256);
@@ -161,6 +168,7 @@ int receiver_SR(int sockfd, int fd)
         }
         else if(decode != PKT_OK) //Erreur dans le packet
         {
+          fprintf(stderr, "receiver => receiver_SR() : decode != PKT_OK \n");
           if(decode == E_CRC)
           {
             acknowledgement(sockfd,window,seqnum);
@@ -168,6 +176,7 @@ int receiver_SR(int sockfd, int fd)
         }
         else
         {
+          fprintf(stderr, "receiver => receiver_SR() : read > 12 \n");
           if(pkt_get_seqnum(new) == seqnum)
           { //write pck payload
             write(fd,pkt_get_payload(new),pkt_get_length(new));
@@ -183,7 +192,10 @@ int receiver_SR(int sockfd, int fd)
                 {
                   if(pkt_get_seqnum(rcv_pkt[i]) == seqnum)
                   {
+                    fprintf(stderr, "receiver => receiver_SR() : write : ?\n");
                     write(fd,pkt_get_payload(rcv_pkt[i]),pkt_get_length(rcv_pkt[i]));
+                    fprintf(stderr, "receiver => receiver_SR() : write : OK\n");
+
                     seqnum = (seqnum+1)%256;
                     rcv_pkt[i] = NULL;
                     cont = 1;
@@ -221,8 +233,11 @@ int receiver_SR(int sockfd, int fd)
           }
         }
       }
+      fprintf(stderr, "receiver => receiver_SR() : read < 0\n");
     }
   }
+  fprintf(stderr, "receiver => receiver_SR() : loop : OK\n");
+
   close(fd);
   close(sockfd);
   return 0;
@@ -287,7 +302,7 @@ int main(int argc, char **argv)
   }
   else
   {
-    fd = open(file,O_WRONLY|O_CREAT);
+    fd = open(file,O_CREAT|O_WRONLY);
   }
   fprintf(stderr, "receiver => main() : receiver_SR : ?\n");
   int err = receiver_SR(sfd,fd);

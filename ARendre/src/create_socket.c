@@ -13,7 +13,7 @@
  */
 int create_socket(struct sockaddr_in6 *source_addr,  int src_port,struct sockaddr_in6 *dest_addr,int dst_port){
     int sockfd;
-    sockfd = socket(PF_INET6,SOCK_DGRAM,IPPROTO_UDP);
+    sockfd = socket(AF_INET6,SOCK_DGRAM,IPPROTO_UDP);
     if(sockfd <0)
     {
       fprintf(stderr, " create_socket => ERROR : sockfd < 0\n");
@@ -34,6 +34,8 @@ int create_socket(struct sockaddr_in6 *source_addr,  int src_port,struct sockadd
         fprintf(stderr, " create_socket => ERROR : source_addr == NULL\n");
         return -1;
       }
+      fprintf(stderr, " create_socket => bind OK\n");
+
     }
     if(dest_addr != NULL)
     {
@@ -49,6 +51,8 @@ int create_socket(struct sockaddr_in6 *source_addr,  int src_port,struct sockadd
         fprintf(stderr, " create_socket => ERROR : dst_addr == NULL\n");
         return -1;
       }
+      fprintf(stderr, " create_socket => connect OK\n");
+
     }
     return sockfd;
   }

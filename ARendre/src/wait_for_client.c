@@ -20,7 +20,7 @@
     socklen_t len = (socklen_t) sizeof(struct sockaddr_in6);
     memset(&src,0,sizeof(src));
     fprintf(stderr, " wait_for_client => recvfrom : ?\n");
-    int recv = recvfrom(sfd,buffer,524,MSG_PEEK,(struct sockaddr *) &src,&len);
+    int recv = recvfrom(sfd,buffer,524 - 1,MSG_PEEK,(struct sockaddr *) &src,&len);
     if(recv == -1)
     {
       fprintf(stderr, " wait_for_client => ERROR : recvfrom == -1\n");

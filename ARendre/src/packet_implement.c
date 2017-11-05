@@ -167,6 +167,7 @@ pkt_status_code pkt_decode(const char *data, const size_t len, pkt_t *pkt)
 {
 	//check there is a header
 	if(len<12){
+		fprintf(stderr, "packet_interface =>  pkt_decode() - len < 12\n");
 		return E_NOHEADER;
 	}
 	//set type, tr et window
@@ -174,10 +175,12 @@ pkt_status_code pkt_decode(const char *data, const size_t len, pkt_t *pkt)
 
 	//	Check si le type copier est bon
 	if(pkt->type != PTYPE_DATA && pkt->type != PTYPE_ACK && pkt->type != PTYPE_NACK){
+		fprintf(stderr, "packet_interface =>  pkt_decode() - pkt->type != PTYPE_DATA && pkt->type != PTYPE_ACK && pkt->type != PTYPE_NACK\n");
 		return E_TYPE;
 	}
 	//	Check si le tr est cohérent
 	if(pkt->type != PTYPE_DATA && pkt->tr != 0){
+		fprintf(stderr, "packet_interface =>  pkt_decode() - len < 12\n");
 		return E_TR;
 	}
 
@@ -187,7 +190,8 @@ pkt_status_code pkt_decode(const char *data, const size_t len, pkt_t *pkt)
 	//set length
 	memcpy(&(pkt->length),data+2,sizeof(uint16_t));
 	pkt->length=ntohs(pkt->length);
-	if(pkt->length > 512){
+	if(pkt->length > 524){ //512
+		fprintf(stderr, "packet_interface =>  pkt_decode() - len < 12\n");
 		return E_LENGTH;
 	}
 	//set timestamp
@@ -201,24 +205,29 @@ pkt_status_code pkt_decode(const char *data, const size_t len, pkt_t *pkt)
 	unsigned char *buf=(unsigned char*) malloc(8);
 
 	if(buf == NULL){
+		fprintf(stderr, "packet_interface =>  pkt_decode() - buf == NULL\n");
 		return E_NOMEM;
 	}
 	memcpy(buf,data,8);
 	crc1 = crc32(crc1,buf,8);
 
 	if(crc1 != pkt->crc1){
+		fprintf(stderr, "packet_interface =>  pkt_decode() - crc1 != pkt->crc1\n");
 		return E_CRC;
 	}
 	free(buf);
 
 	//set payload, check if crc2 is coherent, set crc2
-	if(pkt->length != 0 && len != (12+ sizeof(char)*pkt->length +4) && pkt->tr ==0){
+	if(pkt->length != 0 && len != (12+ sizeof(char)*pkt->length) && pkt->tr ==0){
+	 fprintf(stderr, "packet_interface =>  pkt_decode() - pkt->length != 0 && len != (12+ sizeof(char)*pkt->length +4) && pkt->tr ==0\n");
 		return E_UNCONSISTENT;
 	}
 	else if(pkt->length == 0 && len != 12 && pkt->tr ==0){	 // signifie pas de payload
+		fprintf(stderr, "packet_interface =>  pkt_decode() - pkt->length == 0 && len != 12 && pkt->tr ==0\n");
 		return E_UNCONSISTENT;
 	}
 	else if(pkt->length == 0 && len == 12 && pkt->tr == 1){
+		fprintf(stderr, "packet_interface =>  pkt_decode() - pkt->length == 0 && len == 12 && pkt->tr == 1\n");
 		return PKT_OK;
 	}
 
@@ -235,10 +244,12 @@ pkt_status_code pkt_decode(const char *data, const size_t len, pkt_t *pkt)
 		memcpy(&(pkt->crc2),data+12+size,4);
 		pkt->crc2 = ntohl(pkt->crc2);
 		if(crc2_calc != pkt->crc2){
+			fprintf(stderr, "packet_interface =>  pkt_decode() - crc2_calc != pkt->crc2\n");
 			return E_CRC;
 		}
 		free(buf_crc2);
 	}
+	fprintf(stderr, "packet_interface =>  pkt_decode() - OK\n");
 	return PKT_OK;
 }
 
@@ -259,7 +270,7 @@ pkt_status_code pkt_encode(const pkt_t* pkt, char *buf, size_t *len)
 	}
 
 	//chekc if buff is big enough
-	if(pkt->length >512){
+	if(pkt->length >524){ //512
 		fprintf(stderr, "packet_interface =>  pkt_encode() - pkt->length >512\n");
 		return E_LENGTH;
 	}
