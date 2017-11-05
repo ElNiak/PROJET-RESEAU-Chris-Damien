@@ -116,16 +116,18 @@ int receiver_SR(int sockfd, int fd)
     rcv_pkt[i] = NULL;
   }
 
-  uint16_t seqnum = 0;
+  uint8_t seqnum = 0;
   ssize_t read;
   char buffer [528];
   struct pollfd pfds[2];
   int loop = 1;
   int nbFd;
   fprintf(stderr, "receiver => receiver_SR() : loop : ?\n");
-
+  int cmpt = -1;
   while(loop)
   {
+    cmpt++;
+		fprintf(stderr, "##################   cmpt : %i     ################## \n", cmpt);
     pfds[0].fd = sockfd;
     pfds[0].events = POLLIN | POLLPRI;
 
@@ -154,7 +156,7 @@ int receiver_SR(int sockfd, int fd)
         pkt_t *new = pkt_new();
         pkt_status_code decode = pkt_decode(buffer, read, new);
 
-        if(read == 12) //les 12 bits en plus de payload
+        if(read == 16) //les 12 bits en plus de payload
         {
           fprintf(stderr, "receiver => receiver_SR() : read == 12\n");
           if(pkt_get_seqnum(new) == seqnum)

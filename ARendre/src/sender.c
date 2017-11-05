@@ -69,7 +69,7 @@ int sender_SR(int sockfd, int fd)
 {
 	pkt_t *snd_pkt[MAX_WINDOW_SIZE];
 	int nbAck = -1;
-	uint16_t last_ack = 0;
+	uint8_t last_ack = 0;
 	for(int i = 0; i < 31; i++)
 	{
 		snd_pkt[i] = NULL;
@@ -84,7 +84,7 @@ int sender_SR(int sockfd, int fd)
 	uint8_t window = 1; // 0->31
 	uint8_t max_wind = 1;
 	int isUpdate = 0;
-	uint16_t seqnum = 0;
+	uint8_t seqnum = 0;
 	int nbReadPack = -1;
 	char payload[MAX_PAYLOAD_SIZE];
 	char packet[MAX_PAYLOAD_SIZE+16];
@@ -96,8 +96,11 @@ int sender_SR(int sockfd, int fd)
 	int nbFd;
 	int loopSend = 0;
 	fprintf(stderr, "sender => sender_SR() : loop : ?\n");
+	int cmpt = -1;
 	while(loop)
 	{
+		cmpt++;
+		fprintf(stderr, "##################   cmpt : %i      ################## \n", cmpt);
 		fprintf(stderr, "=========================== sender => sender_SR() : max_window = %d \n",max_wind);
 		fprintf(stderr, "=========================== sender => sender_SR() : window = %d \n",window);
 		pfds[0].fd = sockfd;//reader
@@ -143,12 +146,12 @@ int sender_SR(int sockfd, int fd)
 				isUpdate = 1;
 			}
 
-			last_ack = pkt_get_window(ack);
+			last_ack = pkt_get_seqnum(ack);
 			for(int i = 0; i < max_wind;i++)
 			{
 				if(snd_pkt[i] != NULL)
 				{
-					uint16_t seqnum_pkt = pkt_get_seqnum(snd_pkt[i]);
+					uint8_t seqnum_pkt = pkt_get_seqnum(snd_pkt[i]);
 
 					if(last_ack > seqnum_pkt && (last_ack - seqnum_pkt) <= max_wind)
 					{
@@ -276,14 +279,16 @@ int sender_SR(int sockfd, int fd)
 		}
 	}
 	fprintf(stderr, "sender => sender_SR() : loop : OK\n");
+/*
 	int disconnected = 0;
+
 	while (!disconnected)
 	{
 		pfds[0].fd = sockfd;
 		pfds[0].events = POLLIN | POLLPRI |POLLOUT;
 
 		pfds[1].fd = sockfd;
-		pfds[1].events = POLLPRI | POLLOUT;
+		pfds[1].events =  POLLOUT;
 		fprintf(stderr, "sender => sender_SR() : poll2 : OK\n");
 
 		nbFd = poll(pfds,2,-1); //timeout = -1 => Pour illimite
@@ -312,7 +317,7 @@ int sender_SR(int sockfd, int fd)
 				fprintf(stderr, "sender => error decode - 4\n");
 				return -1;
 			}
-			if(nbAck == 12)
+			if(nbAck == 16)
 			{
 				disconnected = 1;
 			}
@@ -385,7 +390,7 @@ int sender_SR(int sockfd, int fd)
 			}
 		}
 
-	}
+	}*/
 	close(fd);
 	close(sockfd);
 	return 0;
