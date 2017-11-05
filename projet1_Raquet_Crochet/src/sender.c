@@ -230,6 +230,10 @@ int sender_SR(int sockfd, int fd)
 			//	fprintf(stderr, "sender => sender_SR() : send2 : OK\n");
 
 				struct timeval * ntime = malloc(sizeof(struct timeval));
+				if(ntime==NULL){
+					return -1;
+					fprintf(stderr, "erreur malloc\n");
+				}
 				gettimeofday(ntime,NULL);
 				time_buffer[pos_buffer] = ntime;
 				if(reads == -1)
@@ -238,6 +242,7 @@ int sender_SR(int sockfd, int fd)
 					fprintf(stderr, "sender => error send() - 1\n");
 					return -1;
 				}
+				free(ntime);
 			}
 		}
 		if(pfds[1].revents & POLLOUT) // packet perdu
@@ -249,6 +254,10 @@ int sender_SR(int sockfd, int fd)
 				if(time_buffer[i] != NULL)
 				{
 					struct timeval * now = malloc(sizeof(struct timeval));
+					if(now==NULL){
+						return -1;
+						fprintf(stderr, "erreur malloc\n");
+					}
 					gettimeofday(now,NULL);
 					if((now->tv_sec - time_buffer[i]->tv_sec)*1000 - (now->tv_usec - time_buffer[i]->tv_usec)/1000 > 1000) //1000 = timeout
 					{
@@ -258,6 +267,7 @@ int sender_SR(int sockfd, int fd)
 						pkt_status_code status = pkt_encode(snd_pkt[i],packet,&len);
 						if(status != PKT_OK)
 						{
+							free(now);
 							fprintf(stderr, "sender => error pkt_encode() - 2\n");
 							return -1;
 						}
@@ -269,6 +279,7 @@ int sender_SR(int sockfd, int fd)
 						gettimeofday(time_buffer[i],NULL);
 						if(reads == -1)
 						{
+							free(now);
 							fprintf(stderr, "sender => error send() - 2\n");
 							return -1;
 						}
