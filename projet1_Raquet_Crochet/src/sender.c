@@ -23,6 +23,11 @@ char *file=NULL;
 char *hostname=NULL;
 char *port=NULL;
 
+
+
+/*
+ Permet de récuperer les arguments
+*/
 void get_args(int argc, char **argv){
 
 	int opt;
@@ -32,7 +37,6 @@ void get_args(int argc, char **argv){
 		exit(1);
 	}
 	else {
-		/* specify which parameters we expect */
 		static struct option options[] =
 		{
 			{"filename", required_argument, 0, 'f'},
@@ -65,6 +69,10 @@ void get_args(int argc, char **argv){
 }
 
 
+
+/*
+Fonction principale du sender
+*/
 int sender_SR(int sockfd, int fd)
 {
 	pkt_t *snd_pkt[MAX_WINDOW_SIZE];
@@ -74,14 +82,12 @@ int sender_SR(int sockfd, int fd)
 	{
 		snd_pkt[i] = NULL;
 	}
-
 	struct timeval * time_buffer[MAX_WINDOW_SIZE];
 	for(int i = 0; i < 31; i++)
 	{
 		time_buffer[i] = NULL;
 	}
-
-	uint8_t window = 1; // 0->31
+	uint8_t window = 1;
 	uint8_t max_wind = 1;
 	int isUpdate = 0;
 	uint8_t seqnum = 0;
@@ -89,54 +95,53 @@ int sender_SR(int sockfd, int fd)
 	char payload[MAX_PAYLOAD_SIZE];
 	char packet[MAX_PAYLOAD_SIZE+16];
 	char acknowledgements[12];
-	//int mfd = sockfd+1;
 	struct pollfd pfds[2];
 	int loop = 1;
 	ssize_t reads;
 	int nbFd;
 	int loopSend = 0;
-	fprintf(stderr, "sender => sender_SR() : loop : ?\n");
+	//fprintf(stderr, "sender => sender_SR() : loop : ?\n");
 	int cmpt = -1;
 	while(loop)
 	{
 		cmpt++;
-		fprintf(stderr, "##################   cmpt : %i      ################## \n", cmpt);
-		fprintf(stderr, "=========================== sender => sender_SR() : max_window = %d \n",max_wind);
-		fprintf(stderr, "=========================== sender => sender_SR() : window = %d \n",window);
+		//fprintf(stderr, "##################   cmpt : %i      ################## \n", cmpt);
+		//fprintf(stderr, "=========================== sender => sender_SR() : max_window = %d \n",max_wind);
+		//fprintf(stderr, "=========================== sender => sender_SR() : window = %d \n",window);
 		pfds[0].fd = sockfd;//reader
 		pfds[0].events = POLLIN | POLLPRI |POLLOUT;
 
 		pfds[1].fd = sockfd;//writer
 		pfds[1].events = POLLOUT;
-		fprintf(stderr, "sender => sender_SR() : poll1 : ?\n");
+		//fprintf(stderr, "sender => sender_SR() : poll1 : ?\n");
 		nbFd = poll(pfds,2,-1); //timeout = -1 => Pour illimite
 		if(nbFd == -1)
 		{
 			fprintf(stderr, "sender => error poll() - 1");
 			return -1;
 		}
-		fprintf(stderr, "sender => sender_SR() : poll1 : OK\n");
+		//fprintf(stderr, "sender => sender_SR() : poll1 : OK\n");
 
 		if(pfds[0].revents & POLLIN)
 		{
 			fprintf(stderr, "sender => sender_SR() : CASE 1 ===========================\n");
-			fprintf(stderr, "sender => sender_SR() : recv : ?\n");
+			//fprintf(stderr, "sender => sender_SR() : recv : ?\n");
 			nbAck = recv(sockfd,acknowledgements,12,0);
 			if(nbAck == -1)
 			{
 				fprintf(stderr, "sender => error rcv()");
 				return -1;
 			}
-			fprintf(stderr, "sender => sender_SR() : recv : OK\n");
+			//fprintf(stderr, "sender => sender_SR() : recv : OK\n");
 			pkt_t * ack = pkt_new();
-			fprintf(stderr, "sender => sender_SR() : pkt_decode 1 : ?\n");
+			//fprintf(stderr, "sender => sender_SR() : pkt_decode 1 : ?\n");
 			pkt_status_code status = pkt_decode(acknowledgements,12,ack);
 			if(status != PKT_OK)
 			{
 				fprintf(stderr, "sender => error pkt_decode()\n");
 				return -1;
 			}
-			fprintf(stderr, "sender => sender_SR() : pkt_decode : OK\n");
+			//fprintf(stderr, "sender => sender_SR() : pkt_decode : OK\n");
 			uint8_t res = pkt_get_window(ack);
 			if(res != max_wind && !isUpdate)
 			{
@@ -172,18 +177,18 @@ int sender_SR(int sockfd, int fd)
 		}
 		if(pfds[1].revents & POLLOUT) //envoie de packet
 		{
-			fprintf(stderr, "sender => sender_SR() : CASE 2 ===========================\n %i, %i\n",window,loopSend);
+			//fprintf(stderr, "sender => sender_SR() : CASE 2 ===========================\n %i, %i\n",window,loopSend);
 			if(window > 0 && !loopSend)
 			{
-				fprintf(stderr, "sender => sender_SR() : CASE 2 => INSIDE ===========================\n");
+				fprintf(stderr, "sender => sender_SR() : CASE 2  ===========================\n");
 
 				memset(payload,0,512);
-				fprintf(stderr, "sender => sender_SR() : read2 : ?\n");
+				//fprintf(stderr, "sender => sender_SR() : read2 : ?\n");
 
 				nbReadPack = read(fd,payload,512);
 				fprintf(stderr, "sender => sender_SR() : nbReadPack > 0 : nbReadPack = %d\n",(int)nbReadPack);
 
-				fprintf(stderr, "sender => sender_SR() : read2 : OK\n");
+				//fprintf(stderr, "sender => sender_SR() : read2 : OK\n");
 
 				if(nbReadPack == 0)
 				{
@@ -217,12 +222,12 @@ int sender_SR(int sockfd, int fd)
 				}
 				snd_pkt[pos_buffer] = new;
 				window--;
-				fprintf(stderr, "sender => sender_SR() : send2 : ?\n");
+				//fprintf(stderr, "sender => sender_SR() : send2 : ?\n");
 
 				reads = send(sockfd,packet,len,0);
-				fprintf(stderr, "sender => sender_SR() : reads > 0 : reads = %d\n",(int)reads);
+				fprintf(stderr, "sender => sender_SR() : sends > 0 : sends = %d\n",(int)reads);
 
-				fprintf(stderr, "sender => sender_SR() : send2 : OK\n");
+			//	fprintf(stderr, "sender => sender_SR() : send2 : OK\n");
 
 				struct timeval * ntime = malloc(sizeof(struct timeval));
 				gettimeofday(ntime,NULL);
@@ -237,7 +242,7 @@ int sender_SR(int sockfd, int fd)
 		}
 		if(pfds[1].revents & POLLOUT) // packet perdu
 		{
-			fprintf(stderr, "sender => sender_SR() : CASE 3 ===========================\n");
+			//fprintf(stderr, "sender => sender_SR() : CASE 3 ===========================\n");
 
 			for(int i = 0; i < max_wind ; i++)
 			{
@@ -247,7 +252,7 @@ int sender_SR(int sockfd, int fd)
 					gettimeofday(now,NULL);
 					if((now->tv_sec - time_buffer[i]->tv_sec)*1000 - (now->tv_usec - time_buffer[i]->tv_usec)/1000 > 1000) //1000 = timeout
 					{
-						fprintf(stderr, "sender => sender_SR() : CASE 3  : 2sd if  ===========================\n");
+						fprintf(stderr, "sender => sender_SR() : CASE 3 ===========================\\n");
 						size_t len = pkt_get_length(snd_pkt[i])+16;
 						memset(packet,0,528);
 						pkt_status_code status = pkt_encode(snd_pkt[i],packet,&len);
@@ -256,10 +261,10 @@ int sender_SR(int sockfd, int fd)
 							fprintf(stderr, "sender => error pkt_encode() - 2\n");
 							return -1;
 						}
-						fprintf(stderr, "sender => sender_SR() : send3 : ?\n");
+						//fprintf(stderr, "sender => sender_SR() : send3 : ?\n");
 
 						reads = send(sockfd,packet,len,0);
-						fprintf(stderr, "sender => sender_SR() : send3 : OK\n");
+						//fprintf(stderr, "sender => sender_SR() : send3 : OK\n");
 
 						gettimeofday(time_buffer[i],NULL);
 						if(reads == -1)
@@ -278,119 +283,7 @@ int sender_SR(int sockfd, int fd)
 			loop = 0;
 		}
 	}
-	fprintf(stderr, "sender => sender_SR() : loop : OK\n");
-/*
-	int disconnected = 0;
-
-	while (!disconnected)
-	{
-		pfds[0].fd = sockfd;
-		pfds[0].events = POLLIN | POLLPRI |POLLOUT;
-
-		pfds[1].fd = sockfd;
-		pfds[1].events =  POLLOUT;
-		fprintf(stderr, "sender => sender_SR() : poll2 : OK\n");
-
-		nbFd = poll(pfds,2,-1); //timeout = -1 => Pour illimite
-		fprintf(stderr, "sender => sender_SR() : poll2 : ?\n");
-
-		if(nbFd == -1)
-		{
-			fprintf(stderr, "sender => error poll() - 2\n");
-			return -1;
-		}
-
-		if(pfds[0].revents & POLLIN)
-		{
-			fprintf(stderr, "sender => sender_SR() : CASE 4 ===========================\n");
-
-			memset(acknowledgements,0,12);
-			fprintf(stderr, "sender => sender_SR() : recv2 : ?\n");
-
-			nbAck = recv(sockfd,acknowledgements,12,0);
-			fprintf(stderr, "sender => sender_SR() : recv2 : OK\n");
-
-			pkt_t * ack2 = pkt_new();
-			pkt_status_code status = pkt_decode(acknowledgements,12,ack2);
-			if(status != PKT_OK)
-			{
-				fprintf(stderr, "sender => error decode - 4\n");
-				return -1;
-			}
-			if(nbAck == 16)
-			{
-				disconnected = 1;
-			}
-		}
-
-		if(pfds[1].revents & POLLOUT &&  !disconnected)
-		{
-			fprintf(stderr, "sender => sender_SR() : CASE 5 ===========================\n");
-
-			char bufack[12];
-			if(time_buffer[0] == NULL)
-			{
-				pkt_t* disco = pkt_new();
-				pkt_set_length(disco,0);
-				pkt_set_type(disco,PTYPE_DATA);
-				pkt_set_seqnum(disco,seqnum);
-				pkt_set_window(disco,window);
-				pkt_set_timestamp(disco,2);
-				memset(bufack,0,12);
-				size_t len = 12;
-				pkt_status_code code = pkt_encode(disco,bufack,&len);
-				if(code != PKT_OK)
-				{
-					fprintf(stderr, "sender => error encode() - 3\n");
-					return -1;
-				}
-				fprintf(stderr, "sender => sender_SR()  : send4 : ?\n");
-
-				snd_pkt[0] = disco;
-				reads = send(sockfd,bufack,len,0);
-				fprintf(stderr, "sender => sender_SR() : send4 : OK\n");
-
-				struct timeval * newtime = malloc(sizeof(struct timeval));
-				gettimeofday(newtime,NULL);
-				time_buffer[0] = newtime;
-				if(reads == -1)
-				{
-					free(newtime);
-					fprintf(stderr, "sender => error send() -3\n");
-					return -1;
-				}
-				free(newtime);
-			}
-			else
-			{
-				struct timeval *now = malloc(sizeof(struct timeval));
-				gettimeofday(now,NULL);
-				if((now->tv_sec - time_buffer[0]->tv_sec)*1000 - (now->tv_usec - time_buffer[0]->tv_usec)/1000 > 1000)
-				{
-					size_t len = 12;
-					memset(bufack,0,12);
-					pkt_status_code code = pkt_encode(snd_pkt[0],bufack,&len);
-					if(code != PKT_OK)
-					{
-						free(now);
-						fprintf(stderr, "sender => error encode() - 4\n");
-						return -1;
-					}
-					fprintf(stderr, "sender => sender_SR() : send5 : ?\n");
-					reads = send(sockfd,bufack,len,0);
-					fprintf(stderr, "sender => sender_SR() : send5 : OK\n");
-
-					if(reads == -1)
-					{
-						disconnected = 1;
-					}
-					gettimeofday(time_buffer[0],NULL);
-				}
-				free(now);
-			}
-		}
-
-	}*/
+	fprintf(stderr, " ########### sender => sender_SR() : FIN ########### \n");
 	close(fd);
 	close(sockfd);
 	return 0;
@@ -445,5 +338,7 @@ int main(int argc, char **argv){
 		fprintf(stderr,"error while executing sender_SR\n");
 	}
 	fprintf(stderr, "sender => main() : sender_SR : OK\n");
+	fprintf(stderr, " ########### sender => SENDER : FIN ########### \n");
+
 	return 0;
 }
